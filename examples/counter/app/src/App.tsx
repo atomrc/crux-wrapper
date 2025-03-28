@@ -1,7 +1,8 @@
 import { wrapCrux, is } from 'react-crux';
 import init, * as core  from 'shared';
-import { ViewModel, Request, EventVariantIncrement, EffectVariantRender, Effect }  from 'shared_types/types/shared_types';
+import { ViewModel, Request, EventVariantIncrement, EffectVariantRender, Effect, EventVariantDecrement }  from 'shared_types/types/shared_types';
 import { BincodeSerializer, BincodeDeserializer }  from 'shared_types/bincode/mod';
+import { useState } from 'react';
 
   const serializer = {
     serialize(entity: {
@@ -29,10 +30,12 @@ import { BincodeSerializer, BincodeDeserializer }  from 'shared_types/bincode/mo
 };
 
 export function App() {
-  const handleEffect = async (id: number, effect: Effect, view: any) => {
+  const [state, setState] = useState("");
+  const handleEffect = async (id: number, effect: Effect, view: () => Promise<ViewModel>) => {
     switch (true) {
       case is(effect, EffectVariantRender): {
-        console.log("is render", await view());
+        let v= await view();
+        setState(v.count)
         return undefined;
       }
     }
@@ -40,6 +43,5 @@ export function App() {
   };
 
   const api  = wrapCrux(init, core, handleEffect, serializer);
-  api.sendEvent(new EventVariantIncrement())
-  return <div>Hello World</div>
+  return <div><button onClick={() => api.sendEvent(new EventVariantIncrement()) }>+</button> <button onClick={() => api.sendEvent(new EventVariantDecrement()) }>-</button> {state}</div>
 }

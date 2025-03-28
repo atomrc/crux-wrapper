@@ -28,16 +28,13 @@ class Response extends CruxEntity {}
 class Effect extends CruxEntity {}
 
 const api: CruxApi = {
-    init: async () => {
-        return undefined;
-    },
     async view() {
         return serialize({});
     },
-    send: async () => {
+    process_event: async () => {
         return serialize([]);
     },
-    respond: async () => {
+    handle_response: async () => {
         return serialize([]);
     },
 };
@@ -49,8 +46,8 @@ describe("crux wrapper", () => {
         const effects = Array.from({ length: nbEffects }).map((_, i) => {
             return { id: i, effect: {} };
         });
-        vitest.spyOn(api, "send").mockResolvedValue(serialize(effects));
-        const crux = wrapCrux(api, onEffect, console.error, serializer);
+        vitest.spyOn(api, "process_event").mockResolvedValue(serialize(effects));
+      const crux = wrapCrux(async () => { }, api, onEffect, serializer);
 
         await crux.sendEvent(new Event());
         expect(onEffect).toHaveBeenCalledTimes(nbEffects);
@@ -58,16 +55,16 @@ describe("crux wrapper", () => {
 
     it("sends responses back to the crux api", async () => {
         const effect = { id: 0, effect: new Effect() };
-        const onEffect = vitest.fn(async (id) => ({
+        const onEffect = vitest.fn(async (id: number) => ({
             id: id,
             response: new Response(),
         }));
-        vitest.spyOn(api, "send").mockResolvedValue(serialize([effect]));
-        vitest.spyOn(api, "respond");
-        const crux = wrapCrux(api, onEffect, console.error, serializer);
+        vitest.spyOn(api, "process_event").mockResolvedValue(serialize([effect]));
+        vitest.spyOn(api, "handle_response");
+        const crux = wrapCrux(async () => { }, api, onEffect, serializer);
 
         await crux.sendEvent(new Event());
-        expect(api.respond).toHaveBeenCalledWith(
+        expect(api.handle_response).toHaveBeenCalledWith(
             effect.id,
             serialize(new Response()),
         );
@@ -79,8 +76,8 @@ describe("crux wrapper", () => {
         const effects = Array.from({ length: nbEffects }).map((_, i) => {
             return { id: i, effect: {} };
         });
-        vitest.spyOn(api, "respond").mockResolvedValue(serialize(effects));
-        const crux = wrapCrux(api, onEffect, console.error, serializer);
+        vitest.spyOn(api, "handle_response").mockResolvedValue(serialize(effects));
+        const crux = wrapCrux(async () => { }, api, onEffect, serializer);
 
         await crux.sendResponse(0, new Event());
         expect(onEffect).toHaveBeenCalledTimes(nbEffects);
