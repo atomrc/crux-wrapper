@@ -4,61 +4,41 @@ import type {
     CruxEntity,
     CruxSerializer,
     OnEffect,
-    OnError,
 } from "./types";
-type Logs = { event: string; effects: [string, string][]; time: number }[];
 
 export function wrapCrux<VM>(
+    init: () => Promise<unknown>,
     api: CruxApi,
-    onEffect: OnEffect,
-    onError: OnError,
+    onEffect: OnEffect<VM>,
     serializer: CruxSerializer<VM>,
-    /** time after which a command sent to the core is considered stuck and will trigger a CoreTimeoutError */
-    timeout?: { value: number; onTimeout: () => void },
 ) {
-    const logs: Logs = [];
+    const initPromise = init();
+
+    const view =  async () => {
+          await initPromise;
+          const view = await api.view();
+          return serializer.deserializeView(view);
+      };
 
     const send = async (
         sendFn: (eventSender: EventSender<VM>) => Promise<void>,
-        logId: string,
     ) => {
-        const sender = new EventSender(api, onEffect, serializer, timeout);
-        const startedAt = performance.now();
-        try {
-            await sendFn(sender);
-        } catch (error) {
-            onError(error);
-        } finally {
-            logs.push({
-                event: logId,
-                effects: sender.dumpLogs(),
-                time: performance.now() - startedAt,
-            });
-        }
+        const sender = new EventSender(api, (id, effect) => onEffect(id, effect, view), serializer);
+        await sendFn(sender);
     };
 
     return {
-        sendEvent(event: CruxEntity) {
+        async sendEvent(event: CruxEntity) {
+            await initPromise;
             return send(
                 (sender) => sender.sendEvent(serializer.serialize(event)),
-                event.constructor.name,
             );
         },
         sendResponse(id: number, response: CruxEntity) {
             return send(
                 (sender) =>
                     sender.sendResponse(id, serializer.serialize(response)),
-                response.constructor.name,
             );
-        },
-
-        async view() {
-            const view = await api.view();
-            return serializer.deserializeView(view);
-        },
-
-        dumpLogs() {
-            return logs;
         },
     };
 }

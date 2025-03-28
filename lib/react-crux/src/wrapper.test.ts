@@ -28,6 +28,9 @@ class Response extends CruxEntity {}
 class Effect extends CruxEntity {}
 
 const api: CruxApi = {
+    init: async () => {
+        return undefined;
+    },
     async view() {
         return serialize({});
     },
@@ -83,31 +86,4 @@ describe("crux wrapper", () => {
         expect(onEffect).toHaveBeenCalledTimes(nbEffects);
     });
 
-    it("handles a timeout error if the response takes too long", async () => {
-        vi.useFakeTimers();
-        const onEffect = vitest.fn(async () => undefined);
-        const onTimeout = vitest.fn(async () => undefined);
-        const nbEffects = Math.floor(1 + Math.random() * 100);
-        const effects = Array.from({ length: nbEffects }).map((_, i) => {
-            return { id: i, effect: {} };
-        });
-
-        vitest.spyOn(api, "send").mockImplementation(async () => {
-            vi.advanceTimersByTime(1000);
-            return serialize(effects);
-        });
-
-        const crux = wrapCrux(api, onEffect, () => {}, serializer, {
-            value: 500,
-            onTimeout,
-        });
-
-        const promise = crux.sendEvent(new Event());
-        vi.advanceTimersByTime(500);
-        await promise;
-
-        expect(onTimeout).toHaveBeenCalledOnce();
-
-        vi.useRealTimers();
-    });
 });

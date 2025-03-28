@@ -1,4 +1,4 @@
-import type { EffectResponse } from "@lib/coreLogic/effects";
+type EffectResponse = any;
 
 export type EventCycleCallbacks = {
     onEffect: (effect: unknown) => undefined | EffectResponse;
@@ -9,9 +9,10 @@ export type CruxEntity = {
     serialize: (serializer: any) => void;
 };
 
-export type OnEffect = (
+export type OnEffect<VM> = (
     id: number,
     effect: CruxEntity,
+    view: () => Promise<VM>,
 ) => Promise<
     | undefined
     | {
@@ -23,9 +24,9 @@ export type OnEffect = (
 export type OnError = (error: unknown) => void;
 
 export type CruxApi = {
-    send: (payload: Uint8Array) => Promise<Uint8Array>;
-    respond: (id: number, payload: Uint8Array) => Promise<Uint8Array>;
-    view: () => Promise<Uint8Array>;
+    process_event: (payload: Uint8Array) => Promise<Uint8Array> | Uint8Array;
+    handle_response: (id: number, payload: Uint8Array) => Promise<Uint8Array> | Uint8Array;
+    view: () => Promise<Uint8Array> | Uint8Array;
 };
 
 export interface Serializer {

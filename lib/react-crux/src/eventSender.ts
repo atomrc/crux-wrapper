@@ -18,7 +18,6 @@ export class EventSender<VM> {
         private api: CruxApi,
         private onEffect: OnEffect,
         private serializer: CruxSerializer<VM>,
-        private timeout?: { value: number; onTimeout: () => void },
     ) {}
 
     /**
@@ -26,11 +25,11 @@ export class EventSender<VM> {
      * Resolves once all the effect responses that need to be sent back to the core have been sent
      */
     async sendEvent(event: Uint8Array) {
-        return this.exhaust(() => this.api.send(event));
+        return this.exhaust(() => this.api.process_event(event));
     }
 
     async sendResponse(id: number, response: Uint8Array) {
-        return this.exhaust(() => this.api.respond(id, response));
+        return this.exhaust(() => this.api.handle_response(id, response));
     }
 
     dumpLogs() {
@@ -54,7 +53,7 @@ export class EventSender<VM> {
     }
 
     private async exhaust(
-        sendPayload: () => Promise<Uint8Array<ArrayBufferLike>>,
+        sendPayload: () => Promise<Uint8Array<ArrayBufferLike>> | Uint8Array<ArrayBufferLike>,
     ) {
         const response =  sendPayload();
 
