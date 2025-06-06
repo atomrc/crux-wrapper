@@ -14,9 +14,9 @@ importers:
       counter_types:
         specifier: link:../shared/types/typescript
         version: link:../shared/types/typescript
-      crux-wrapper:
+      crux-react:
         specifier: workspace:*
-        version: link:../../../lib/crux-wrapper
+        version: link:../../../lib/crux-react
       eslint:
         specifier: 9.21.0
         version: 9.21.0
@@ -45,6 +45,21 @@ importers:
       '@types/react-dom':
         specifier: 19.0.4
         version: 19.0.4(@types/react@19.0.10)
+
+  lib/crux-react:
+    dependencies:
+      '@types/react':
+        specifier: 19.0.10
+        version: 19.0.10
+      crux-wrapper:
+        specifier: workspace:*
+        version: link:../crux-wrapper
+      react:
+        specifier: 19.0.0
+        version: 19.0.0
+      typescript:
+        specifier: 5.8.2
+        version: 5.8.2
 
   lib/crux-wrapper:
     dependencies:

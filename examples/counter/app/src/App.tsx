@@ -1,42 +1,43 @@
-import { wrapCrux, is } from "crux-wrapper";
+import { CruxProvider, useDispatch, useViewModel } from "crux-react";
 import init, * as core from "shared";
 import {
-  ViewModel,
   EventVariantIncrement,
-  EffectVariantRender,
-  Effect,
   EventVariantDecrement,
+  RenderOperation,
+  EffectVariantRender,
 } from "counter_types/types/counter_types";
-import { useState } from "react";
 import { serializer } from "./serializer";
 
-export function App() {
-  const [state, setState] = useState(0);
-  const handleEffect = async (
-    id: number,
-    effect: Effect,
-    view: () => Promise<ViewModel>,
-  ) => {
-    switch (true) {
-      case is(effect, EffectVariantRender): {
-        let v = await view();
-        setState(Number(v.count));
-        return undefined;
-      }
-    }
-    return undefined;
-  };
+declare global {
+  interface VM {
+    count: bigint;
+  }
+}
 
-  const api = wrapCrux(init, core, handleEffect, serializer);
+function Counter() {
+  const count = useViewModel();
+  const dispatch = useDispatch();
+  const increment = () => dispatch(new EventVariantIncrement());
+  const decrement = () => dispatch(new EventVariantDecrement());
+
   return (
     <div>
-      <button onClick={() => api.sendEvent(new EventVariantIncrement())}>
-        +
-      </button>{" "}
-      <button onClick={() => api.sendEvent(new EventVariantDecrement())}>
-        -
-      </button>{" "}
-      {state}
+      <button onClick={increment}>+</button>{" "}
+      <button onClick={decrement}>-</button> {count.count}
     </div>
+  );
+}
+export function App() {
+  const cruxConfig = {
+    init: () => init(),
+    api: core,
+    onEffect: async () => undefined,
+    serializer,
+    RenderEffect: EffectVariantRender,
+  };
+  return (
+    <CruxProvider cruxConfig={cruxConfig}>
+      <Counter />
+    </CruxProvider>
   );
 }

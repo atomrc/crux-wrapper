@@ -16,7 +16,7 @@
     "counter_types": "link:../shared/types/typescript",
     "typescript": "5.8.2",
     "vite": "^6.2.3",
-    "crux-wrapper": "workspace:*"
+    "crux-react": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "22.13.9",
