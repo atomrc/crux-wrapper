@@ -1,62 +1,72 @@
 use crux_core::{
-    macros::Export,
-    render::{render, Render},
-    App, Command,
+    macros::effect,
+    render::{render, RenderOperation},
+    Command,
 };
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+// ANCHOR: model
+#[derive(Default, Serialize)]
+pub struct Model {
+    count: Count,
+}
+
+#[derive(Serialize, Deserialize, Clone, Default, Debug, PartialEq, Eq)]
+pub struct Count {
+    value: isize,
+}
+// ANCHOR_END: model
+
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+pub struct ViewModel {
+    pub count: isize,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum Event {
     Increment,
     Decrement,
-    Reset,
 }
 
-#[derive(crux_core::macros::Effect, Export)]
-#[allow(unused)]
-pub struct Capabilities {
-    render: Render<Event>,
-}
-
-#[derive(Default)]
-pub struct Model {
-    count: isize,
-}
-
-#[derive(Serialize, Deserialize, Clone, Default)]
-pub struct ViewModel {
-    pub count: String,
+#[effect]
+pub enum Effect {
+    Render(RenderOperation),
 }
 
 #[derive(Default)]
-pub struct Counter;
+pub struct App;
 
-// ANCHOR: impl_app
-impl App for Counter {
-    type Event = Event;
+impl crux_core::App for App {
     type Model = Model;
+    type Event = Event;
     type ViewModel = ViewModel;
-    type Capabilities = Capabilities;
+    type Capabilities = ();
     type Effect = Effect;
 
-    fn update(
-        &self,
-        event: Self::Event,
-        model: &mut Self::Model,
-        _caps: &Self::Capabilities,
-    ) -> Command<Self::Effect, Event> {
-        match event {
-            Event::Increment => model.count += 1,
-            Event::Decrement => model.count -= 1,
-            Event::Reset => model.count = 0,
-        };
+    fn update(&self, msg: Event, model: &mut Model, _caps: &()) -> Command<Effect, Event> {
+        match msg {
+            Event::Increment => {
+                // optimistic update
+                model.count = Count {
+                    value: model.count.value + 1,
+                };
 
-        render()
+                render()
+            }
+            Event::Decrement => {
+                // optimistic update
+                model.count = Count {
+                    value: model.count.value - 1,
+                };
+
+                render()
+            }
+        }
     }
 
     fn view(&self, model: &Self::Model) -> Self::ViewModel {
-        ViewModel {
-            count: format!("Count is: {}", model.count),
+        Self::ViewModel {
+            count: model.count.value,
         }
     }
 }

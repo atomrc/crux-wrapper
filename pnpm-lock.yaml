@@ -11,6 +11,9 @@ importers:
       '@vitejs/plugin-react':
         specifier: ^4.3.4
         version: 4.3.4(vite@6.2.3(@types/node@22.13.9))
+      counter_types:
+        specifier: link:../shared/types/typescript
+        version: link:../shared/types/typescript
       eslint:
         specifier: 9.21.0
         version: 9.21.0
@@ -26,9 +29,6 @@ importers:
       shared:
         specifier: link:../shared/pkg
         version: link:../shared/pkg
-      shared_types:
-        specifier: link:../shared_types/generated/typescript
-        version: link:../shared_types/generated/typescript
       typescript:
         specifier: 5.8.2
         version: 5.8.2

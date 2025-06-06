@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "pnpm run wasm:build",
-    "wasm:build": "cd ../shared && wasm-pack build --target web",
+    "build": "pnpm run build:core",
+    "build:core": "cd ../shared && wasm-pack build --target web --dev && sh typegen.sh",
     "start": "vite"
   },
   "dependencies": {
@@ -13,7 +13,7 @@
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "shared": "link:../shared/pkg",
-    "shared_types": "link:../shared_types/generated/typescript",
+    "counter_types": "link:../shared/types/typescript",
     "typescript": "5.8.2",
     "vite": "^6.2.3",
     "react-crux": "workspace:*"

@@ -1,7 +1,7 @@
 import { wrapCrux, is } from 'react-crux';
 import init, * as core  from 'shared';
-import { ViewModel, Request, EventVariantIncrement, EffectVariantRender, Effect, EventVariantDecrement }  from 'shared_types/types/shared_types';
-import { BincodeSerializer, BincodeDeserializer }  from 'shared_types/bincode/mod';
+import { ViewModel, Request, EventVariantIncrement, EffectVariantRender, Effect, EventVariantDecrement }  from 'counter_types/types/counter_types';
+import { BincodeSerializer, BincodeDeserializer }  from 'counter_types/bincode/mod';
 import { useState } from 'react';
 
   const serializer = {
@@ -34,7 +34,7 @@ export function App() {
   const handleEffect = async (id: number, effect: Effect, view: () => Promise<ViewModel>) => {
     switch (true) {
       case is(effect, EffectVariantRender): {
-        let v= await view();
+        let v = await view();
         setState(v.count)
         return undefined;
       }

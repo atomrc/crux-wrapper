@@ -1,5 +1,5 @@
 [workspace]
-members = ["shared", "shared_types"]
+members = ["shared"]
 resolver = "1"
 
 [workspace.package]
@@ -12,7 +12,7 @@ rust-version = "1.66"
 
 [workspace.dependencies]
 anyhow = "1.0.97"
-crux_core = "0.12"
+crux_core = "0.15"
 serde = "1.0.218"
 
 [workspace.metadata.bin]
