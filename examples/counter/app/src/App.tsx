@@ -3,7 +3,6 @@ import init, * as core from "shared";
 import {
   EventVariantIncrement,
   EventVariantDecrement,
-  RenderOperation,
   EffectVariantRender,
 } from "counter_types/types/counter_types";
 import { serializer } from "./serializer";

@@ -1,15 +1,17 @@
-export type Selector<T> = (viewModel: VM) => T;
+export type Selector<T> = (viewModel: CruxViewModel) => T;
 
 export class State extends EventTarget {
-  constructor(private viewModel: VM) {
+  constructor(private viewModel: CruxViewModel) {
     super();
   }
 
-  getViewModel<T = VM>(selector: Selector<T> = (model) => model as T) {
+  getViewModel<T = CruxViewModel>(
+    selector: Selector<T> = (model) => model as T,
+  ) {
     return selector(this.viewModel);
   }
 
-  setViewModel(viewModel: VM) {
+  setViewModel(viewModel: CruxViewModel) {
     this.viewModel = viewModel;
     this.dispatchEvent(new CustomEvent("updated"));
   }
