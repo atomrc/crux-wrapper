@@ -28,7 +28,7 @@ function Counter() {
 }
 export function App() {
   const cruxConfig = {
-    init: () => init(),
+    init,
     api: core,
     onEffect: async () => undefined,
     serializer,
