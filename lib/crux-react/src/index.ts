@@ -1,10 +1,16 @@
-import { is, wrapCrux } from "crux-wrapper";
-import type { Constructor, CruxConfig, CruxEntity } from "crux-wrapper";
+import { is, wrap } from "crux-wrapper";
+import type { Constructor, CoreConfig, CruxEntity } from "crux-wrapper";
 import react, { useContext, useSyncExternalStore } from "react";
 import { State, type Selector } from "./state";
 
+export type { CoreConfig } from "crux-wrapper";
+
 declare global {
-  interface CruxViewModel {}
+  interface CoreViewModel {}
+  interface CoreRequest {
+    id: number;
+    effect: any;
+  }
 }
 
 type StoreApi = {
@@ -12,7 +18,7 @@ type StoreApi = {
   state?: State;
 };
 
-const CruxContext = react.createContext<StoreApi>({
+const CoreContext = react.createContext<StoreApi>({
   dispatch: () => {
     throw new Error("CruxProvider not set");
   },
@@ -20,39 +26,52 @@ const CruxContext = react.createContext<StoreApi>({
 
 type Props = {
   children: React.ReactNode;
-  cruxConfig: CruxConfig<CruxViewModel> & {
-    RenderEffect?: Constructor<any>;
-  };
+  coreConfig: CoreConfig<CoreViewModel, CoreRequest>;
+  /**
+   * Will allow the provider to expose the `useViewMode` hook and compute state updates for you
+   */
+  RenderEffect?: Constructor<any>;
+  /**
+   * Initial state that is going to be loaded before any interaction with the core happens
+   */
+  initialState: CoreViewModel;
 };
 
-export function CruxProvider({ children, cruxConfig }: Props) {
-  const state = new State({});
-  const { RenderEffect, ...config } = cruxConfig;
-  const wrap = wrapCrux({
-    ...config,
+/**
+ * Provides a context that exposes the crux api.
+ */
+export function CoreProvider({
+  children,
+  coreConfig,
+  RenderEffect,
+  initialState,
+}: Props) {
+  const state = new State(initialState);
+  const wrapped = wrap({
+    ...coreConfig,
     onEffect: async (id, effect, view) => {
       if (RenderEffect && is(effect, RenderEffect)) {
         state.setViewModel(await view());
         return;
       }
-      return config.onEffect(id, effect, view);
+      return coreConfig.onEffect(id, effect, view);
     },
   });
 
   const context = {
-    dispatch: wrap.sendEvent,
+    dispatch: wrapped.sendEvent,
     state,
   };
 
   return react.createElement(
-    CruxContext.Provider,
+    CoreContext.Provider,
     { value: context },
     children,
   );
 }
 
 export function useDispatch() {
-  return useContext(CruxContext).dispatch;
+  return useContext(CoreContext).dispatch;
 }
 
 /**
@@ -61,8 +80,8 @@ export function useDispatch() {
  * @param selector allows selecting a slice of the state and only subscribing to changes to that particular slice
  * @returns
  */
-export function useViewModel<T = CruxViewModel>(selector?: Selector<T>) {
-  const state = useContext(CruxContext).state;
+export function useViewModel<T = CoreViewModel>(selector?: Selector<T>) {
+  const state = useContext(CoreContext).state;
   if (!state) {
     throw new Error(
       "useViewModel cannot be used when RenderEffect property was not set",

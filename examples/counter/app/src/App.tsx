@@ -1,14 +1,19 @@
-import { CruxProvider, useDispatch, useViewModel } from "crux-react";
+import { CoreProvider, useDispatch, useViewModel } from "crux-react";
 import init, * as core from "shared";
 import {
   EventVariantIncrement,
   EventVariantDecrement,
   EffectVariantRender,
+  ViewModel,
+  Request,
 } from "counter_types/types/counter_types";
-import { serializer } from "./serializer";
+import {
+  BincodeSerializer,
+  BincodeDeserializer,
+} from "counter_types/bincode/mod";
 
 declare global {
-  interface VM {
+  interface CoreViewModel {
     count: bigint;
   }
 }
@@ -27,16 +32,25 @@ function Counter() {
   );
 }
 export function App() {
-  const cruxConfig = {
+  const coreConfig = {
     init,
     api: core,
     onEffect: async () => undefined,
-    serializer,
-    RenderEffect: EffectVariantRender,
+    serializerConfig: {
+      BincodeSerializer,
+      BincodeDeserializer,
+      ViewModel,
+      Request: Request,
+    },
   };
+  const initialState = new ViewModel(BigInt(0));
   return (
-    <CruxProvider cruxConfig={cruxConfig}>
+    <CoreProvider
+      coreConfig={coreConfig}
+      initialState={initialState}
+      RenderEffect={EffectVariantRender}
+    >
       <Counter />
-    </CruxProvider>
+    </CoreProvider>
   );
 }

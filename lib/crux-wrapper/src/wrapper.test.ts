@@ -1,7 +1,7 @@
 import { describe, expect, it, vi, vitest } from "vitest";
 
-import type { CruxApi, CruxSerializer } from "./types";
-import { wrapCrux } from "./wrapper";
+import type { CruxApi, Serializer } from "./types";
+import { wrap, type SerializerConfig } from "./wrapper";
 
 function serialize(entity: object) {
   const str = JSON.stringify(entity);
@@ -14,10 +14,11 @@ function deserialize(data: Uint8Array) {
   return JSON.parse(str);
 }
 
-const serializer: CruxSerializer<object> = {
-  serialize,
-  deserializeEffects: deserialize,
-  deserializeView: deserialize,
+const serializerConfig: SerializerConfig<unknown, unknown> = {
+  BincodeSerializer: {},
+  BincodeDeserializer: {},
+  ViewModel: Object,
+  Request: Object,
 };
 
 class CruxEntity {
@@ -47,7 +48,12 @@ describe("crux wrapper", () => {
       return { id: i, effect: {} };
     });
     vitest.spyOn(api, "process_event").mockResolvedValue(serialize(effects));
-    const crux = wrapCrux({ init: async () => {}, api, onEffect, serializer });
+    const crux = wrap({
+      init: async () => {},
+      api,
+      onEffect,
+      serializerConfig,
+    });
 
     await crux.sendEvent(new Event());
     expect(onEffect).toHaveBeenCalledTimes(nbEffects);
@@ -61,7 +67,12 @@ describe("crux wrapper", () => {
     }));
     vitest.spyOn(api, "process_event").mockResolvedValue(serialize([effect]));
     vitest.spyOn(api, "handle_response");
-    const crux = wrapCrux({ init: async () => {}, api, onEffect, serializer });
+    const crux = wrap({
+      init: async () => {},
+      api,
+      onEffect,
+      serializerConfig,
+    });
 
     await crux.sendEvent(new Event());
     expect(api.handle_response).toHaveBeenCalledWith(
@@ -77,7 +88,12 @@ describe("crux wrapper", () => {
       return { id: i, effect: {} };
     });
     vitest.spyOn(api, "handle_response").mockResolvedValue(serialize(effects));
-    const crux = wrapCrux({ init: async () => {}, api, onEffect, serializer });
+    const crux = wrap({
+      init: async () => {},
+      api,
+      onEffect,
+      serializerConfig,
+    });
 
     await crux.sendResponse(0, new Event());
     expect(onEffect).toHaveBeenCalledTimes(nbEffects);
