@@ -1,4 +1,3 @@
-import type { SerializedError } from "vitest";
 import { EventSender } from "./eventSender";
 import type {
   CruxApi,

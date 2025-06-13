@@ -1,9 +1,7 @@
-import { is, wrap } from "crux-wrapper";
-import type { Constructor, CoreConfig, CruxEntity } from "crux-wrapper";
+import { is, wrap } from "../";
+import type { CoreConfig, Constructor, CruxEntity } from "../";
 import react, { useContext, useSyncExternalStore } from "react";
 import { State, type Selector } from "./state";
-
-export type { CoreConfig } from "crux-wrapper";
 
 declare global {
   interface CoreViewModel {}

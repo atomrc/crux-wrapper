@@ -1,4 +1,4 @@
-import { CoreProvider, useDispatch, useViewModel } from "crux-react";
+import { CoreProvider, useDispatch, useViewModel } from "crux-wrapper/react";
 import init, * as core from "shared";
 import {
   EventVariantIncrement,
@@ -40,7 +40,7 @@ export function App() {
       BincodeSerializer,
       BincodeDeserializer,
       ViewModel,
-      Request: Request,
+      Request,
     },
   };
   const initialState = new ViewModel(BigInt(0));

@@ -1,24 +1,49 @@
 import { describe, expect, it, vi, vitest } from "vitest";
 
 import type { CruxApi, Serializer } from "./types";
-import { wrap, type SerializerConfig } from "./wrapper";
+import { createSerializer, wrap, type SerializerConfig } from "./wrapper";
 
-function serialize(entity: object) {
-  const str = JSON.stringify(entity);
-  const buffer = new TextEncoder().encode(str).buffer;
-  return new Uint8Array(buffer);
+class BincodeSerializer {
+  constructor() {}
+  getBytes() {
+    const str = JSON.stringify(this.entity);
+    const buffer = new TextEncoder().encode(str).buffer;
+    return new Uint8Array(buffer);
+  }
 }
 
-function deserialize(data: Uint8Array) {
-  const str = new TextDecoder().decode(data);
-  return JSON.parse(str);
+class BincodeDeserializer {
+  constructor(private bytes: Uint8Array) {}
+  deserializeLen(): number {
+    return 0;
+    const str = JSON.stringify(this.entity);
+    const buffer = new TextEncoder().encode(str).buffer;
+    return new Uint8Array(buffer);
+  }
+}
+
+class Request {
+  constructor(
+    public id: number,
+    public effect: any,
+  ) {}
+  static deserialize(ds: any) {
+    return null;
+  }
+}
+
+class ViewModel {
+  constructor() {}
+  static deserialize(ds: any) {
+    return null;
+  }
 }
 
 const serializerConfig: SerializerConfig<unknown, unknown> = {
-  BincodeSerializer: {},
-  BincodeDeserializer: {},
-  ViewModel: Object,
-  Request: Object,
+  BincodeSerializer,
+  BincodeDeserializer,
+  ViewModel,
+  Request,
 };
 
 class CruxEntity {
@@ -30,13 +55,13 @@ class Effect extends CruxEntity {}
 
 const api: CruxApi = {
   async view() {
-    return serialize({});
+    return new Uint8Array();
   },
   process_event: async () => {
-    return serialize([]);
+    return new Uint8Array();
   },
   handle_response: async () => {
-    return serialize([]);
+    return new Uint8Array();
   },
 };
 
