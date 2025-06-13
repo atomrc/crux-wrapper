@@ -1,0 +1,13 @@
+{
+  "name": "crux-tools",
+  "version": "0.0.0",
+  "private": "true",
+  "description": "A set of tools to better integrate crux into a react app",
+  "scripts": {
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
