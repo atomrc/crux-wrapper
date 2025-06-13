@@ -7,17 +7,17 @@ import type {
   SerializableClass,
 } from "./types";
 
-type Serializer = {
+type BinSerializer = {
   getBytes(): Uint8Array;
 };
-type Deserializer = {
+type BinDeserializer = {
   deserializeLen(): number;
 };
 type SerializerClass = {
-  new (): Serializer;
+  new (): BinSerializer;
 };
 type DeserializerClass = {
-  new (bytes: Uint8Array): Deserializer;
+  new (bytes: Uint8Array): BinDeserializer;
 };
 
 export type SerializerConfig<VM, R> = {
@@ -27,7 +27,13 @@ export type SerializerConfig<VM, R> = {
   Request: SerializableClass<R>;
 };
 
-export type CoreConfig<VM, R> = {
+export type Serializer<VM, R> = {
+  serialize(entity: any): Uint8Array;
+  deserializeEffects(bytes: Uint8Array): R[];
+  deserializeView(bytes: Uint8Array): VM;
+};
+
+interface BaseConfig<VM> {
   /**
    * initialization function that should load the wasm bundle. You can provide the default export of the crux package
    * ```
@@ -54,26 +60,48 @@ export type CoreConfig<VM, R> = {
    * The function that will be called for every single effect that the core requests
    */
   onEffect: OnEffect<VM>;
+}
+
+interface ConfigWithSerializer<VM, R> extends BaseConfig<VM> {
   /**
-   * The functions that should be used to serialize/deserialize payloads between the core and the shell
+   * The needed classes to be able to serialize/deserialize payload from and to the core
+   */
+  serializerConfig?: never;
+  /**
+   * A custom serializer that could be provided instead of the serializerConfig
+   */
+  serializer: Serializer<VM, R>;
+}
+
+interface ConfigWithSerializerConfig<VM, R> extends BaseConfig<VM> {
+  /**
+   * The needed classes to be able to serialize/deserialize payload from and to the core
    */
   serializerConfig: SerializerConfig<VM, R>;
-};
+  /**
+   * A custom serializer that could be provided instead of the serializerConfig
+   */
+  serializer?: never;
+}
+
+export type CoreConfig<VM, R> =
+  | ConfigWithSerializer<VM, R>
+  | ConfigWithSerializerConfig<VM, R>;
 
 function createSerializer<VM, R>({
   BincodeSerializer,
   BincodeDeserializer,
   ViewModel,
   Request,
-}: SerializerConfig<VM, R>) {
+}: SerializerConfig<VM, R>): Serializer<VM, R> {
   return {
-    serialize(entity: any): Uint8Array {
+    serialize(entity) {
       const serializer = new BincodeSerializer();
       entity.serialize(serializer);
       return serializer.getBytes();
     },
 
-    deserializeEffects(bytes: Uint8Array): R[] {
+    deserializeEffects(bytes) {
       const deserializer = new BincodeDeserializer(bytes);
       const len = deserializer.deserializeLen();
       const requests: R[] = [];
@@ -84,7 +112,7 @@ function createSerializer<VM, R>({
       return requests;
     },
 
-    deserializeView(bytes: Uint8Array): VM {
+    deserializeView(bytes) {
       return ViewModel.deserialize(new BincodeDeserializer(bytes));
     },
   };
@@ -95,9 +123,10 @@ export function wrap<VM, R extends Request>({
   api,
   onEffect,
   serializerConfig,
+  serializer: baseSerializer,
 }: CoreConfig<VM, R>) {
   const initPromise = init();
-  const serializer = createSerializer(serializerConfig);
+  const serializer = baseSerializer ?? createSerializer(serializerConfig);
 
   const view = async () => {
     await initPromise;

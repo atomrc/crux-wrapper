@@ -1,3 +1,3 @@
 export * from "./wrapper";
-export * from "./types";
+export type { CruxApi, CruxEntity } from "./types";
 export * from "./typeguards";

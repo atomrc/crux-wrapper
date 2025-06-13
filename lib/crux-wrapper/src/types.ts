@@ -32,12 +32,6 @@ export type CruxApi = {
   view: () => Promise<Uint8Array> | Uint8Array;
 };
 
-export interface Serializer {
-  getBytes(): Uint8Array;
-}
-export interface Deserializer {
-  deserializeBytes(): Uint8Array;
-}
 export type Request = {
   effect: CruxEntity;
   id: number;

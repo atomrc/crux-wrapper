@@ -1,49 +1,23 @@
-import { describe, expect, it, vi, vitest } from "vitest";
+import { describe, expect, it, vitest } from "vitest";
 
-import type { CruxApi, Serializer } from "./types";
-import { createSerializer, wrap, type SerializerConfig } from "./wrapper";
+import type { CruxApi } from "./types";
+import { wrap, type Serializer } from "./wrapper";
 
-class BincodeSerializer {
-  constructor() {}
-  getBytes() {
-    const str = JSON.stringify(this.entity);
-    const buffer = new TextEncoder().encode(str).buffer;
-    return new Uint8Array(buffer);
-  }
+function serialize(entity: object) {
+  const str = JSON.stringify(entity);
+  const buffer = new TextEncoder().encode(str).buffer;
+  return new Uint8Array(buffer);
 }
 
-class BincodeDeserializer {
-  constructor(private bytes: Uint8Array) {}
-  deserializeLen(): number {
-    return 0;
-    const str = JSON.stringify(this.entity);
-    const buffer = new TextEncoder().encode(str).buffer;
-    return new Uint8Array(buffer);
-  }
+function deserialize(data: Uint8Array) {
+  const str = new TextDecoder().decode(data);
+  return JSON.parse(str);
 }
 
-class Request {
-  constructor(
-    public id: number,
-    public effect: any,
-  ) {}
-  static deserialize(ds: any) {
-    return null;
-  }
-}
-
-class ViewModel {
-  constructor() {}
-  static deserialize(ds: any) {
-    return null;
-  }
-}
-
-const serializerConfig: SerializerConfig<unknown, unknown> = {
-  BincodeSerializer,
-  BincodeDeserializer,
-  ViewModel,
-  Request,
+const serializer: Serializer<object, any> = {
+  serialize,
+  deserializeEffects: deserialize,
+  deserializeView: deserialize,
 };
 
 class CruxEntity {
@@ -55,15 +29,17 @@ class Effect extends CruxEntity {}
 
 const api: CruxApi = {
   async view() {
-    return new Uint8Array();
+    return serialize({});
   },
   process_event: async () => {
-    return new Uint8Array();
+    return serialize([]);
   },
   handle_response: async () => {
-    return new Uint8Array();
+    return serialize([]);
   },
 };
+
+const init = async () => {};
 
 describe("crux wrapper", () => {
   it("forwards effects triggered by an event", async () => {
@@ -73,12 +49,7 @@ describe("crux wrapper", () => {
       return { id: i, effect: {} };
     });
     vitest.spyOn(api, "process_event").mockResolvedValue(serialize(effects));
-    const crux = wrap({
-      init: async () => {},
-      api,
-      onEffect,
-      serializerConfig,
-    });
+    const crux = wrap({ init, api, onEffect, serializer });
 
     await crux.sendEvent(new Event());
     expect(onEffect).toHaveBeenCalledTimes(nbEffects);
@@ -92,12 +63,7 @@ describe("crux wrapper", () => {
     }));
     vitest.spyOn(api, "process_event").mockResolvedValue(serialize([effect]));
     vitest.spyOn(api, "handle_response");
-    const crux = wrap({
-      init: async () => {},
-      api,
-      onEffect,
-      serializerConfig,
-    });
+    const crux = wrap({ init, api, onEffect, serializer });
 
     await crux.sendEvent(new Event());
     expect(api.handle_response).toHaveBeenCalledWith(
@@ -113,12 +79,7 @@ describe("crux wrapper", () => {
       return { id: i, effect: {} };
     });
     vitest.spyOn(api, "handle_response").mockResolvedValue(serialize(effects));
-    const crux = wrap({
-      init: async () => {},
-      api,
-      onEffect,
-      serializerConfig,
-    });
+    const crux = wrap({ init, api, onEffect, serializer });
 
     await crux.sendResponse(0, new Event());
     expect(onEffect).toHaveBeenCalledTimes(nbEffects);
