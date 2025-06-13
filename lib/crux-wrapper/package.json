@@ -8,13 +8,15 @@
     "./react": "./dist/react/index.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc --build tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
     "test": "vitest"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@types/react": "19.0.10",
     "react": "19.0.0",
     "typescript": "5.8.2",
     "vitest": "^3.0.9"
