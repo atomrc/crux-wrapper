@@ -43,12 +43,11 @@ export class EventSender<VM, R extends Request> {
     const effectLogId = `${effect.constructor.name} ${id}`;
     this.logEffect(effectLogId, "pending");
     const response = await this.onEffect(id, effect);
-    this.logEffect(effectLogId, "exec");
+    this.logEffect(effectLogId, "done");
     if (response) {
       const payload = this.serializer.serialize(response.response);
       await this.sendResponse(id, payload);
     }
-    this.logEffect(effectLogId, "done");
   }
 
   private async exhaust(
@@ -64,7 +63,7 @@ export class EventSender<VM, R extends Request> {
     );
   }
 
-  private logEffect(effectId: string, status: "pending" | "exec" | "done") {
+  private logEffect(effectId: string, status: "pending" | "done") {
     this.logs.set(effectId, status);
   }
 }
