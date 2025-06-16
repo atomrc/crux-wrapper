@@ -1,16 +1,13 @@
 import { CoreProvider, useDispatch, useViewModel } from "crux-wrapper/react";
-import init, * as core from "shared";
+import init, * as core from "core";
 import {
   EventVariantIncrement,
   EventVariantDecrement,
   EffectVariantRender,
   ViewModel,
   Request,
-} from "counter_types/types/counter_types";
-import {
-  BincodeSerializer,
-  BincodeDeserializer,
-} from "counter_types/bincode/mod";
+} from "core_types/types/core_types";
+import { BincodeSerializer, BincodeDeserializer } from "core_types/bincode/mod";
 
 declare global {
   interface CoreViewModel {

@@ -1,12 +1,12 @@
 [package]
-name = "shared"
+name = "core"
 version = "0.1.0"
 edition = "2021"
 rust-version = "1.80"
 
 [lib]
 crate-type = ["lib", "staticlib", "cdylib"]
-name = "shared"
+name = "core"
 
 [[bin]]
 name = "crux_cli"
@@ -16,8 +16,8 @@ required-features = ["cli"]
 cli = ["crux_core/cli"]
 
 [dependencies]
-crux_core.workspace = true
-serde = { workspace = true, features = ["derive"] }
+crux_core = "0.15"
+serde = { version = "1.0.218", features = ["derive"] }
 lazy_static = "1.5.0"
 uniffi = "0.29.0"
 
