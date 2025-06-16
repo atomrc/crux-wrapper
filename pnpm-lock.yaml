@@ -6,14 +6,19 @@ settings:
 
 importers:
 
+  .: {}
+
   examples/counter/app:
     dependencies:
       '@vitejs/plugin-react':
         specifier: ^4.3.4
         version: 4.3.4(vite@6.2.3(@types/node@22.13.9))
-      counter_types:
-        specifier: link:../shared/types/typescript
-        version: link:../shared/types/typescript
+      core:
+        specifier: link:../core/pkg
+        version: link:../core/pkg
+      core_types:
+        specifier: link:../core/types/typescript
+        version: link:../core/types/typescript
       crux-wrapper:
         specifier: workspace:*
         version: link:../../../lib/crux-wrapper
@@ -26,9 +31,6 @@ importers:
       react-dom:
         specifier: 19.0.0
         version: 19.0.0(react@19.0.0)
-      shared:
-        specifier: link:../shared/pkg
-        version: link:../shared/pkg
       typescript:
         specifier: 5.8.2
         version: 5.8.2

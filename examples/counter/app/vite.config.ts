@@ -5,6 +5,6 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [react()],
   optimizeDeps: {
-    include: ["counter_types/bincode/mod", "counter_types/types/counter_types"],
+    include: ["core_types/bincode/mod", "core_types/types/core_types"],
   },
 });
