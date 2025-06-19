@@ -39,7 +39,7 @@ const api: CruxApi = {
   },
 };
 
-const init = async () => {};
+const init = async () => api;
 
 describe("crux wrapper", () => {
   it("forwards effects triggered by an event", async () => {
@@ -49,7 +49,7 @@ describe("crux wrapper", () => {
       return { id: i, effect: {} };
     });
     vitest.spyOn(api, "process_event").mockResolvedValue(serialize(effects));
-    const crux = wrap({ init, api, onEffect, serializer });
+    const crux = wrap({ init, onEffect, serializer });
 
     await crux.sendEvent(new Event());
     expect(onEffect).toHaveBeenCalledTimes(nbEffects);
@@ -63,7 +63,7 @@ describe("crux wrapper", () => {
     }));
     vitest.spyOn(api, "process_event").mockResolvedValue(serialize([effect]));
     vitest.spyOn(api, "handle_response");
-    const crux = wrap({ init, api, onEffect, serializer });
+    const crux = wrap({ init, onEffect, serializer });
 
     await crux.sendEvent(new Event());
     expect(api.handle_response).toHaveBeenCalledWith(
@@ -79,7 +79,7 @@ describe("crux wrapper", () => {
       return { id: i, effect: {} };
     });
     vitest.spyOn(api, "handle_response").mockResolvedValue(serialize(effects));
-    const crux = wrap({ init, api, onEffect, serializer });
+    const crux = wrap({ init, onEffect, serializer });
 
     await crux.sendResponse(0, new Event());
     expect(onEffect).toHaveBeenCalledTimes(nbEffects);
