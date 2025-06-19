@@ -1,4 +1,4 @@
-## crux-wrapper
+# crux-wrapper
 
 A set of tools to make using a [Crux](https://github.com/redbadger/crux) application as if it was an npm package.
 It brings:
