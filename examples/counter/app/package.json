@@ -9,14 +9,14 @@
   },
   "dependencies": {
     "@vitejs/plugin-react": "^4.3.4",
+    "core": "link:../core/pkg",
+    "core_types": "link:../core/types/typescript",
+    "crux-wrapper": "workspace:*",
     "eslint": "9.21.0",
     "react": "19.0.0",
     "react-dom": "19.0.0",
-    "core": "link:../core/pkg",
-    "core_types": "link:../core/types/typescript",
     "typescript": "5.8.2",
-    "vite": "^6.2.3",
-    "crux-wrapper": "workspace:*"
+    "vite": "^6.2.3"
   },
   "devDependencies": {
     "@types/node": "22.13.9",

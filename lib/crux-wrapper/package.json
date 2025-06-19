@@ -1,14 +1,18 @@
 {
   "name": "crux-wrapper",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "type": "module",
+  "files": [
+    "dist"
+  ],
   "exports": {
     ".": "./dist/index.js",
     "./react": "./dist/react/index.js"
   },
   "scripts": {
     "build": "tsc --build tsconfig.build.json",
+    "prepare": "pnpm build",
     "typecheck": "tsc --noEmit",
     "test": "vitest"
   },
