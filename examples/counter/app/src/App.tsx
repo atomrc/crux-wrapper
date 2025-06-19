@@ -30,8 +30,10 @@ function Counter() {
 }
 export function App() {
   const coreConfig = {
-    init,
-    api: core,
+    init: async () => {
+      await init();
+      return core;
+    },
     onEffect: async () => undefined,
     serializerConfig: {
       BincodeSerializer,
