@@ -35,27 +35,17 @@ export type Serializer<VM, R> = {
 
 interface BaseConfig<VM> {
   /**
-   * initialization function that should load the wasm bundle. You can provide the default export of the crux package
+   * initialization function that should load the wasm bundle.
+   * This function should return a promise that resolves to the crux base API of your core (`process_even`, `handle_effect`, `view`)
    * ```
-   * import init from "shared" // your shared package
+   * import init, * as core from "shared";
    * wrapCrux({
-   *    init,
+   *    init: () => init().then(() => core),
    *    //...
    * })
    * ```
    */
-  init: () => Promise<unknown>;
-  /**
-   * The crux api exposed by your crux core. It contains the `process_event`, `handle_response` and `view` functions
-   * typically you would do
-   * ```
-   * import * as core from "shared";
-   * wrapCrux({
-   *    api: core
-   * })
-   * ```
-   */
-  api: CruxApi;
+  init: () => Promise<CruxApi>;
   /**
    * The function that will be called for every single effect that the core requests
    */
@@ -120,7 +110,6 @@ function createSerializer<VM, R>({
 
 export function wrap<VM, R extends Request>({
   init,
-  api,
   onEffect,
   serializerConfig,
   serializer: baseSerializer,
@@ -129,7 +118,7 @@ export function wrap<VM, R extends Request>({
   const serializer = baseSerializer ?? createSerializer(serializerConfig);
 
   const view = async () => {
-    await initPromise;
+    const api = await initPromise;
     const view = await api.view();
     return serializer.deserializeView(view);
   };
@@ -137,6 +126,7 @@ export function wrap<VM, R extends Request>({
   const send = async (
     sendFn: (eventSender: EventSender<VM, R>) => Promise<void>,
   ) => {
+    const api = await initPromise;
     const sender = new EventSender(
       api,
       (id, effect) => onEffect(id, effect, view),
@@ -147,7 +137,6 @@ export function wrap<VM, R extends Request>({
 
   return {
     async sendEvent(event: CruxEntity) {
-      await initPromise;
       return send((sender) => sender.sendEvent(serializer.serialize(event)));
     },
     sendResponse(id: number, response: CruxEntity) {

@@ -173,3 +173,61 @@ switch(request.constructor) {
     // ❌ Property 'duration' does not exist on type 'TimeRequest'
 }
 ```
+
+# Running your crux app in a web worker
+
+Web workers allow you to run scripts in background threads, which can be useful for offloading heavy computations or tasks that would otherwise block the main thread. In the context of a crux application, you can run your app logic in a web worker to keep the UI responsive.
+
+This is how you would use the `wrap` (same for the `react` version) function to run your crux app in a web worker:
+
+note: the following example is based on [comlink](https://github.com/GoogleChromeLabs/comlink) that I highly recommend for web workers.
+
+```typescript
+// webworker.ts
+import type { Endpoint } from "comlink";
+import { expose } from "comlink";
+import init, { handle_response, process_event, view } from "core";
+import wasmPath from "core/core_bg.wasm?url";
+
+const api = {
+    // The worker just has to define a function that will trigger the loading of the wasm module
+    init: async () => {
+      await init({ module_or_path: wasmPath })
+    },
+    process_event,
+    handle_response,
+    view,
+};
+export type CoreWorkerApi = typeof api;
+expose(api, self as Endpoint);
+```
+
+```typescript
+import { wrap } from "crux-wrapper";
+
+import init, * as core from "shared";
+import { ViewModel, Request, } from "shared_types/types/core_types";
+import { BincodeSerializer, BincodeDeserializer } from "shared_types/bincode/mod";
+
+const app = wrap({
+  init: () => {
+    const worker =  wrap<CoreWorkerApi>(
+          new Worker(new URL("./worker.ts", import.meta.url), {
+              type: "module",
+          }),
+      );
+    // We call the init, to make sure the worker loads the wasm module
+    await worker.init();
+    return worker;
+  },
+  onEffect: async () => {/*...*/},
+  serializerConfig: {
+    BincodeSerializer,
+    BincodeDeserializer,
+    ViewModel,
+    Request,
+  },
+});
+```
+
+Now with those changes, all your payload will go through the webworker and the crux core will be leaving the main thread alone.

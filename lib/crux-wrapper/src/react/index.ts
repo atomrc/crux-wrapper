@@ -1,6 +1,6 @@
 import { is, wrap } from "../";
 import type { CoreConfig, Constructor, CruxEntity } from "../";
-import react, { useContext, useSyncExternalStore } from "react";
+import react, { useContext, useEffect, useRef, useSyncExternalStore } from "react";
 import { State, type Selector } from "./state";
 
 declare global {
@@ -45,19 +45,23 @@ export function CoreProvider({
   initialState,
 }: Props) {
   const state = new State(initialState);
-  const wrapped = wrap({
-    ...coreConfig,
-    onEffect: async (id, effect, view) => {
-      if (RenderEffect && is(effect, RenderEffect)) {
-        state.setViewModel(await view());
-        return;
-      }
-      return coreConfig.onEffect(id, effect, view);
-    },
-  });
+  const wrapped = useRef<ReturnType<typeof wrap>>(null);
 
-  const context = {
-    dispatch: wrapped.sendEvent,
+  useEffect(() => {
+     wrapped.current = wrap({
+      ...coreConfig,
+      onEffect: async (id, effect, view) => {
+        if (RenderEffect && is(effect, RenderEffect)) {
+          state.setViewModel(await view());
+          return;
+        }
+        return coreConfig.onEffect(id, effect, view);
+      },
+    });
+  }, [coreConfig, RenderEffect]);
+
+  const context: StoreApi = {
+    dispatch: async (event) => wrapped.current?.sendEvent(event),
     state,
   };
 
