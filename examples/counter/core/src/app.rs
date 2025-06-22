@@ -9,7 +9,6 @@ use serde::{Deserialize, Serialize};
 #[derive(Default, Serialize)]
 pub struct Model {
     count: Count,
-    payload: Vec<u8>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Default, Debug, PartialEq, Eq)]
@@ -21,14 +20,12 @@ pub struct Count {
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct ViewModel {
     pub count: isize,
-    #[serde(with = "serde_bytes")]
-    pub payload: Vec<u8>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum Event {
-    Increment(#[serde(with = "serde_bytes")] Vec<u8>),
-    Decrement(#[serde(with = "serde_bytes")] Vec<u8>),
+    Increment,
+    Decrement,
 }
 
 #[effect]
@@ -48,18 +45,16 @@ impl crux_core::App for App {
 
     fn update(&self, msg: Event, model: &mut Model, _caps: &()) -> Command<Effect, Event> {
         match msg {
-            Event::Increment(payload) => {
+            Event::Increment => {
                 model.count = Count {
                     value: model.count.value + 1,
                 };
-                model.payload = payload;
                 render()
             }
-            Event::Decrement(payload) => {
+            Event::Decrement => {
                 model.count = Count {
                     value: model.count.value - 1,
                 };
-                model.payload = payload;
                 render()
             }
         }
@@ -68,7 +63,6 @@ impl crux_core::App for App {
     fn view(&self, model: &Self::Model) -> Self::ViewModel {
         Self::ViewModel {
             count: model.count.value,
-            payload: model.payload.clone(),
         }
     }
 }

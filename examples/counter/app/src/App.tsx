@@ -17,15 +17,14 @@ declare global {
 function Counter() {
   const count = useViewModel();
   const dispatch = useDispatch();
-  const payload = new Uint8Array(100_000).fill(1);
   const increment = async () => {
     console.time("increment");
-    await dispatch(new EventVariantIncrement(payload));
+    await dispatch(new EventVariantIncrement());
     console.timeEnd("increment");
   };
   const decrement = async () => {
     console.time("decrement");
-    await dispatch(new EventVariantDecrement(payload));
+    await dispatch(new EventVariantDecrement());
     console.timeEnd("decrement");
   };
 
@@ -38,7 +37,7 @@ function Counter() {
   );
 }
 export function App() {
-  const initialState = new ViewModel(BigInt(0), new Uint8Array(0));
+  const initialState = new ViewModel(BigInt(0));
   const coreConfig = getCoreConfig(false);
   return (
     <CoreProvider
