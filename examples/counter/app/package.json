@@ -5,20 +5,26 @@
   "scripts": {
     "build": "pnpm run build:core && vite build",
     "build:core": "cd ../core && wasm-pack build --target web --dev && sh typegen.sh",
-    "start": "vite"
+    "start": "vite",
+    "test": "vitest"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^4.3.4",
+    "comlink": "^4.4.2",
     "core": "link:../core/pkg",
     "core_types": "link:../core/types/typescript",
     "crux-wrapper": "workspace:*",
     "eslint": "9.21.0",
+    "happy-dom": "^18.0.1",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "typescript": "5.8.2",
-    "vite": "^6.2.3"
+    "vite": "^6.2.3",
+    "vitest": "^3.0.9"
   },
   "devDependencies": {
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/react": "^16.3.0",
     "@types/node": "22.13.9",
     "@types/react": "19.0.10",
     "@types/react-dom": "19.0.4"

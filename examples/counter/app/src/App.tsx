@@ -5,9 +5,8 @@ import {
   EventVariantDecrement,
   EffectVariantRender,
   ViewModel,
-  Request,
 } from "core_types/types/core_types";
-import { BincodeSerializer, BincodeDeserializer } from "core_types/bincode/mod";
+import { getCoreConfig } from "./config";
 
 declare global {
   interface CoreViewModel {
@@ -18,31 +17,29 @@ declare global {
 function Counter() {
   const count = useViewModel();
   const dispatch = useDispatch();
-  const increment = () => dispatch(new EventVariantIncrement());
-  const decrement = () => dispatch(new EventVariantDecrement());
+  const payload = new Uint8Array(100_000).fill(1);
+  const increment = async () => {
+    console.time("increment");
+    await dispatch(new EventVariantIncrement(payload));
+    console.timeEnd("increment");
+  };
+  const decrement = async () => {
+    console.time("decrement");
+    await dispatch(new EventVariantDecrement(payload));
+    console.timeEnd("decrement");
+  };
 
   return (
     <div>
+      <div>{count.count}</div>
       <button onClick={increment}>+</button>{" "}
-      <button onClick={decrement}>-</button> {count.count}
+      <button onClick={decrement}>-</button>
     </div>
   );
 }
 export function App() {
-  const coreConfig = {
-    init: async () => {
-      await init();
-      return core;
-    },
-    onEffect: async () => undefined,
-    serializerConfig: {
-      BincodeSerializer,
-      BincodeDeserializer,
-      ViewModel,
-      Request,
-    },
-  };
-  const initialState = new ViewModel(BigInt(0));
+  const initialState = new ViewModel(BigInt(0), new Uint8Array(0));
+  const coreConfig = getCoreConfig(false);
   return (
     <CoreProvider
       coreConfig={coreConfig}
