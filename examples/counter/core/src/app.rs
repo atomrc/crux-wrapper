@@ -46,19 +46,15 @@ impl crux_core::App for App {
     fn update(&self, msg: Event, model: &mut Model, _caps: &()) -> Command<Effect, Event> {
         match msg {
             Event::Increment => {
-                // optimistic update
                 model.count = Count {
                     value: model.count.value + 1,
                 };
-
                 render()
             }
             Event::Decrement => {
-                // optimistic update
                 model.count = Count {
                     value: model.count.value - 1,
                 };
-
                 render()
             }
         }
