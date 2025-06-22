@@ -6,13 +6,13 @@ It brings:
 - a react `Provider` that will allow you to use your crux app as if it was a redux store
 - the `is` function that allows easy typeguarding of payloads coming from the crux app
 
-### Installation
+## Installation
 
 ```bash
 npm install crux-wrapper
 ```
 
-### Usage with react
+## Usage with react
 
 The `react` package allows you to have access to 2 highly useful hooks:
 - `useViewModel` to subscribe to the changes of the view model
@@ -108,30 +108,7 @@ function Counter() {
 }
 ```
 
-### Usage with vanilla app
-
-You can also use the `crux-wrapper` without react. By using the `wrap` function exposed, you get the benefit of being able to `await` events that are sent to your crux application.
-
-```typescript
-import { wrap } from "crux-wrapper";
-
-const app = wrap({
-  init,
-  api: core,
-  onEffect: async () => {/*...*/},
-  serializerConfig: {
-    BincodeSerializer,
-    BincodeDeserializer,
-    ViewModel,
-    Request,
-  },
-});
-
-await app.sendEvent(new EventVariantIncrement()); // Send an event to the crux app
-// At this point you know that all the effects initiated by the event have been fully processed
-```
-
-### Typescript helper
+## Typescript helper
 
 When receiving payloads from the crux app, you often have to compare the class of the object to the prototypes of the classes you expect. Something along the lines of `paylaod instanceof CruxEventVariant`. This is cumbersome and doesn't provide correct type checks.
 
@@ -174,7 +151,7 @@ switch(request.constructor) {
 }
 ```
 
-# Running your crux app in a web worker
+## Running your crux app in a web worker
 
 Web workers allow you to run scripts in background threads, which can be useful for offloading heavy computations or tasks that would otherwise block the main thread. In the context of a crux application, you can run your app logic in a web worker to keep the UI responsive.
 
@@ -201,6 +178,10 @@ const api = {
 export type CoreWorkerApi = typeof api;
 expose(api, self as Endpoint);
 ```
+
+The only differences between a core running in the main thread and one running in a web worker is the `init` function, that is a slight variant.
+
+See the [example project](../../examples/counter/app/src/config.ts) for a full working example.
 
 ```typescript
 import { wrap } from "crux-wrapper";
@@ -231,3 +212,26 @@ const app = wrap({
 ```
 
 Now with those changes, all your payload will go through the webworker and the crux core will be leaving the main thread alone.
+
+## Usage in a VanillaJS app
+
+You can also use the `crux-wrapper` without react. By using the `wrap` function exposed, you get the benefit of being able to `await` events that are sent to your crux application.
+
+```typescript
+import { wrap } from "crux-wrapper";
+
+const app = wrap({
+  init,
+  api: core,
+  onEffect: async () => {/*...*/},
+  serializerConfig: {
+    BincodeSerializer,
+    BincodeDeserializer,
+    ViewModel,
+    Request,
+  },
+});
+
+await app.sendEvent(new EventVariantIncrement()); // Send an event to the crux app
+// At this point you know that all the effects initiated by the event have been fully processed
+```
