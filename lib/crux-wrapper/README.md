@@ -2,6 +2,7 @@
 
 A set of tools to make using a [Crux](https://github.com/redbadger/crux) application as if it was an npm package.
 It brings:
+
 - the possibility to `await` an event that was sent to your crux application
 - a react `Provider` that will allow you to use your crux app as if it was a redux store
 - the `is` function that allows easy typeguarding of payloads coming from the crux app
@@ -15,6 +16,7 @@ npm install crux-wrapper
 ## Usage with react
 
 The `react` package allows you to have access to 2 highly useful hooks:
+
 - `useViewModel` to subscribe to the changes of the view model
 - `useDispatch` to send events to the crux app
 
@@ -30,9 +32,11 @@ import { BincodeSerializer, BincodeDeserializer } from "shared_types/bincode/mod
 
 export function App() {
   const coreConfig = {
-    init, // The wasm init function
-    api: core, // the full API exposed by the generated wasm module (`process_event`, `handler_effec` and `view`)
-    onEffect: async () => {/*...*/}, // the handler that will be passed all the effects the core needs to perform
+    init: async () => {
+      await init();
+      return core;
+    }, // The wasm init function that will expose your core's API
+    onEffect: async (id, effect) => {/*...*/}, // the handler that will be passed all the effects the core needs to perform
     serializerConfig: {
       BincodeSerializer,
       BincodeDeserializer,
@@ -115,6 +119,7 @@ When receiving payloads from the crux app, you often have to compare the class o
 The `is` function bring both a nice way to check what a crux payload is + type narrowing for typescript application
 
 Suppose you are using `crux_time` and you need to handle those 2 requests:
+
 ```rust
 NotifyAt { id: TimerId, instant: Instant },
 NotifyAfter { id: TimerId, duration: Duration },
@@ -125,29 +130,29 @@ This is how you'd do it with the `is` function:
 ```typescript
 import { is } from "crux-wrapper";
 
-switch(true) {
-  case is(request, TimeRequestVariantNotifyAt):{
+switch (true) {
+  case is(request, TimeRequestVariantNotifyAt): {
     const { id, instant } = request;
     //                     ^? TimeRequestVariantNotifyAt
   }
   case is(payload, TimeRequestVariantNotifyAfter):
     const { id, duration } = request;
-    //                      ^? TimeRequestVariantNotifyAfter
+  //                      ^? TimeRequestVariantNotifyAfter
 }
 ```
 
-For comparison this is what you'd get only using switch on the constructor and  `instanceof`:
+For comparison this is what you'd get only using switch on the constructor and `instanceof`:
 Property 'instant' does not exist on type 'TimeRequest'
 
 ```typescript
-switch(request.constructor) {
-  case request instanceof TimeRequestVariantNotifyAt:{
+switch (request.constructor) {
+  case request instanceof TimeRequestVariantNotifyAt: {
     const { id, instant } = payload;
     // ❌ Property 'instant' does not exist on type 'TimeRequest'
   }
   case request instanceof TimeRequestVariantNotifyAfter:
     const { id, duration } = payload;
-    // ❌ Property 'duration' does not exist on type 'TimeRequest'
+  // ❌ Property 'duration' does not exist on type 'TimeRequest'
 }
 ```
 
@@ -167,13 +172,13 @@ import init, { handle_response, process_event, view } from "core";
 import wasmPath from "core/core_bg.wasm?url";
 
 const api = {
-    // The worker just has to define a function that will trigger the loading of the wasm module
-    init: async () => {
-      await init({ module_or_path: wasmPath })
-    },
-    process_event,
-    handle_response,
-    view,
+  // The worker just has to define a function that will trigger the loading of the wasm module
+  init: async () => {
+    await init({ module_or_path: wasmPath });
+  },
+  process_event,
+  handle_response,
+  view,
 };
 export type CoreWorkerApi = typeof api;
 expose(api, self as Endpoint);
@@ -187,21 +192,26 @@ See the [example project](../../examples/counter/app/src/config.ts) for a full w
 import { wrap } from "crux-wrapper";
 
 import init, * as core from "shared";
-import { ViewModel, Request, } from "shared_types/types/core_types";
-import { BincodeSerializer, BincodeDeserializer } from "shared_types/bincode/mod";
+import { ViewModel, Request } from "shared_types/types/core_types";
+import {
+  BincodeSerializer,
+  BincodeDeserializer,
+} from "shared_types/bincode/mod";
 
 const app = wrap({
   init: () => {
-    const worker =  wrap<CoreWorkerApi>(
-          new Worker(new URL("./worker.ts", import.meta.url), {
-              type: "module",
-          }),
-      );
+    const worker = wrap<CoreWorkerApi>(
+      new Worker(new URL("./worker.ts", import.meta.url), {
+        type: "module",
+      }),
+    );
     // We call the init, to make sure the worker loads the wasm module
     await worker.init();
     return worker;
   },
-  onEffect: async () => {/*...*/},
+  onEffect: async () => {
+    /*...*/
+  },
   serializerConfig: {
     BincodeSerializer,
     BincodeDeserializer,
@@ -223,7 +233,9 @@ import { wrap } from "crux-wrapper";
 const app = wrap({
   init,
   api: core,
-  onEffect: async () => {/*...*/},
+  onEffect: async () => {
+    /*...*/
+  },
   serializerConfig: {
     BincodeSerializer,
     BincodeDeserializer,

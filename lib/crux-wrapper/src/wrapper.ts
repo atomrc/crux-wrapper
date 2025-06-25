@@ -1,4 +1,4 @@
-import { EventSender } from "./eventSender";
+import { sender } from "./eventSender";
 import type {
   CruxApi,
   CruxEntity,
@@ -123,26 +123,16 @@ export function wrap<VM, R extends Request>({
     return serializer.deserializeView(view);
   };
 
-  const send = async (
-    sendFn: (eventSender: EventSender<VM, R>) => Promise<void>,
-  ) => {
+  const send = async (event: CruxEntity) => {
     const api = await initPromise;
-    const sender = new EventSender(
+    return sender(
       api,
-      (id, effect) => onEffect(id, effect, view),
+      (id, effect, stream) => onEffect(id, effect, { view, stream }),
       serializer,
-    );
-    await sendFn(sender);
+    )(event);
   };
 
   return {
-    async sendEvent(event: CruxEntity) {
-      return send((sender) => sender.sendEvent(serializer.serialize(event)));
-    },
-    sendResponse(id: number, response: CruxEntity) {
-      return send((sender) =>
-        sender.sendResponse(id, serializer.serialize(response)),
-      );
-    },
+    dispatch: send,
   };
 }
