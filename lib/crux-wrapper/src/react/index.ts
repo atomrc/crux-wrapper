@@ -1,15 +1,14 @@
 import { is, wrap } from "../";
 import type { CoreConfig, Constructor, CruxEntity } from "../";
-import react, { useContext, useEffect, useRef, useSyncExternalStore } from "react";
+import react, {
+  useContext,
+  useEffect,
+  useRef,
+  useSyncExternalStore,
+} from "react";
 import { State, type Selector } from "./state";
-
-declare global {
-  interface CoreViewModel {}
-  interface CoreRequest {
-    id: number;
-    effect: any;
-  }
-}
+import type { CoreViewModel } from "crux-wrapper/react";
+import type { Request } from "../types";
 
 type StoreApi = {
   dispatch: (event: CruxEntity) => Promise<void>;
@@ -18,13 +17,13 @@ type StoreApi = {
 
 const CoreContext = react.createContext<StoreApi>({
   dispatch: () => {
-    throw new Error("CruxProvider not set");
+    throw new Error("");
   },
 });
 
 type Props = {
   children: React.ReactNode;
-  coreConfig: CoreConfig<CoreViewModel, CoreRequest>;
+  coreConfig: CoreConfig<CoreViewModel, Request>;
   /**
    * Will allow the provider to expose the `useViewMode` hook and compute state updates for you
    */
@@ -48,20 +47,20 @@ export function CoreProvider({
   const wrapped = useRef<ReturnType<typeof wrap>>(null);
 
   useEffect(() => {
-     wrapped.current = wrap({
+    wrapped.current = wrap({
       ...coreConfig,
-      onEffect: async (id, effect, view) => {
+      onEffect: async (id, effect, callbacks) => {
         if (RenderEffect && is(effect, RenderEffect)) {
-          state.setViewModel(await view());
+          state.setViewModel(await callbacks.view());
           return;
         }
-        return coreConfig.onEffect(id, effect, view);
+        return coreConfig.onEffect(id, effect, callbacks);
       },
     });
   }, [coreConfig, RenderEffect]);
 
   const context: StoreApi = {
-    dispatch: async (event) => wrapped.current?.sendEvent(event),
+    dispatch: async (event) => wrapped.current?.dispatch(event),
     state,
   };
 
@@ -82,7 +81,9 @@ export function useDispatch() {
  * @param selector allows selecting a slice of the state and only subscribing to changes to that particular slice
  * @returns
  */
-export function useViewModel<T = CoreViewModel>(selector?: Selector<T>) {
+export function useViewModel<T = CoreViewModel>(
+  selector?: Selector<T>,
+) {
   const state = useContext(CoreContext).state;
   if (!state) {
     throw new Error(

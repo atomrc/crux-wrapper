@@ -12,14 +12,14 @@ export type CruxEntity = {
 export type OnEffect<VM> = (
   id: number,
   effect: CruxEntity,
-  view: () => Promise<VM>,
-) => Promise<
-  | undefined
-  | {
-      id: number;
-      response: CruxEntity;
-    }
->;
+  {
+    stream,
+    view,
+  }: {
+    stream: (response: CruxEntity) => void;
+    view: () => Promise<VM>;
+  },
+) => Promise<undefined | CruxEntity>;
 
 export type OnError = (error: unknown) => void;
 

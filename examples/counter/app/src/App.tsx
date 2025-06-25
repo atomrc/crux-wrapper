@@ -1,5 +1,4 @@
 import { CoreProvider, useDispatch, useViewModel } from "crux-wrapper/react";
-import init, * as core from "core";
 import {
   EventVariantIncrement,
   EventVariantDecrement,
@@ -8,10 +7,8 @@ import {
 } from "core_types/types/core_types";
 import { getCoreConfig } from "./config";
 
-declare global {
-  interface CoreViewModel {
-    count: bigint;
-  }
+declare module 'crux-wrapper/react' {
+  type CoreViewModel = ViewModel;
 }
 
 function Counter() {

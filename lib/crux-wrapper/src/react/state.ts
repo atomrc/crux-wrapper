@@ -1,3 +1,5 @@
+import type { CoreViewModel } from "crux-wrapper/react";
+
 export type Selector<T> = (viewModel: CoreViewModel) => T;
 
 export class State extends EventTarget {
