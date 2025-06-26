@@ -30,12 +30,14 @@ import init, * as core from "shared";
 import { ViewModel, Request, } from "shared_types/types/core_types";
 import { BincodeSerializer, BincodeDeserializer } from "shared_types/bincode/mod";
 
+// Will tell typescript what the final view model is. It will allow correctly typing the useViewModel hook
+declare module "crux-wrapper/react" {
+  type CoreViewModel = ViewModel;
+}
+
 export function App() {
   const coreConfig = {
-    init: async () => {
-      await init();
-      return core;
-    }, // The wasm init function that will expose your core's API
+    init: () => init().then(() => core), // The wasm init function that will expose your core's API
     onEffect: async (id, effect) => {/*...*/}, // the handler that will be passed all the effects the core needs to perform
     serializerConfig: {
       BincodeSerializer,
@@ -44,11 +46,11 @@ export function App() {
       Request,
     },
   };
-  const initialState = new ViewModel(BigInt(0));
+
   return (
     <CoreProvider
       coreConfig={coreConfig}
-      initialState={initialState}
+      initialState={new ViewModel(BigInt(0))}
       RenderEffect={EffectVariantRender}
     >
       <Counter />
@@ -232,7 +234,6 @@ import { wrap } from "crux-wrapper";
 
 const app = wrap({
   init,
-  api: core,
   onEffect: async () => {
     /*...*/
   },
@@ -244,6 +245,7 @@ const app = wrap({
   },
 });
 
+await app.init(); // Initialize the crux app (will load the wasm module)
 await app.sendEvent(new EventVariantIncrement()); // Send an event to the crux app
 // At this point you know that all the effects initiated by the event have been fully processed
 ```

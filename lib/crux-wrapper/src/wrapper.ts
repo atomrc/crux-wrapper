@@ -114,25 +114,32 @@ export function wrap<VM, R extends Request>({
   serializerConfig,
   serializer: baseSerializer,
 }: CoreConfig<VM, R>) {
-  const initPromise = init();
+  let apiPromise: Promise<CruxApi> | undefined = undefined;
   const serializer = baseSerializer ?? createSerializer(serializerConfig);
 
-  const view = async () => {
-    const api = await initPromise;
-    const view = await api.view();
-    return serializer.deserializeView(view);
-  };
-
-  const send = async (event: CruxEntity) => {
-    const api = await initPromise;
-    return sender(
-      api,
-      (id, effect, stream) => onEffect(id, effect, { view, stream }),
-      serializer,
-    )(event);
-  };
-
   return {
-    dispatch: send,
+    init: async () => {
+      if (apiPromise) {
+        return;
+      }
+      apiPromise = init();
+    },
+    send: async (event: CruxEntity) => {
+      if (!apiPromise) {
+        throw new Error("Core not initialized. Call init() first.");
+      }
+      const api = await apiPromise;
+      return sender(
+        api,
+        (id, effect, stream) =>
+          onEffect(id, effect, {
+            view: async () => {
+              return serializer.deserializeView(await api.view());
+            },
+            stream,
+          }),
+        serializer,
+      )(event);
+    },
   };
 }

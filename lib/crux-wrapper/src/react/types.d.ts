@@ -3,5 +3,5 @@ declare module "crux-wrapper/react" {
   type CoreRequest = {
     id: number;
     effect: any;
-  }
+  };
 }
