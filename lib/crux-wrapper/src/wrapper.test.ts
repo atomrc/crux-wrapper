@@ -42,6 +42,13 @@ const api: CruxApi = {
 const init = async () => api;
 
 describe("crux wrapper", () => {
+  it("should throw if core has not been initialized", () => {
+    const crux = wrap({ init, onEffect: vitest.fn(), serializer });
+    expect(crux.send(new Event())).rejects.toThrowError(
+      "Core not initialized. Call init() first.",
+    );
+  });
+
   it("forwards effects triggered by an event", async () => {
     const onEffect = vitest.fn(async () => undefined);
     const nbEffects = Math.floor(1 + Math.random() * 100);
@@ -50,8 +57,9 @@ describe("crux wrapper", () => {
     });
     vitest.spyOn(api, "process_event").mockResolvedValue(serialize(effects));
     const crux = wrap({ init, onEffect, serializer });
+    await crux.init();
 
-    await crux.dispatch(new Event());
+    await crux.send(new Event());
     expect(onEffect).toHaveBeenCalledTimes(nbEffects);
   });
 
@@ -62,7 +70,8 @@ describe("crux wrapper", () => {
     vitest.spyOn(api, "handle_response");
     const crux = wrap({ init, onEffect, serializer });
 
-    await crux.dispatch(new Event());
+    await crux.init();
+    await crux.send(new Event());
     expect(api.handle_response).toHaveBeenCalledWith(
       effect.id,
       serialize(new Response()),

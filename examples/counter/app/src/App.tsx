@@ -7,7 +7,7 @@ import {
 } from "core_types/types/core_types";
 import { getCoreConfig } from "./config";
 
-declare module 'crux-wrapper/react' {
+declare module "crux-wrapper/react" {
   type CoreViewModel = ViewModel;
 }
 

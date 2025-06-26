@@ -43,30 +43,34 @@ export function CoreProvider({
   RenderEffect,
   initialState,
 }: Props) {
+  const isInit = useRef(false);
   const state = new State(initialState);
-  const wrapped = useRef<ReturnType<typeof wrap>>(null);
+  const core = wrap({
+    ...coreConfig,
+    onEffect: async (id, effect, callbacks) => {
+      if (RenderEffect && is(effect, RenderEffect)) {
+        state.setViewModel(await callbacks.view());
+        return;
+      }
+      return coreConfig.onEffect(id, effect, callbacks);
+    },
+  });
 
   useEffect(() => {
-    wrapped.current = wrap({
-      ...coreConfig,
-      onEffect: async (id, effect, callbacks) => {
-        if (RenderEffect && is(effect, RenderEffect)) {
-          state.setViewModel(await callbacks.view());
-          return;
-        }
-        return coreConfig.onEffect(id, effect, callbacks);
-      },
-    });
-  }, [coreConfig, RenderEffect]);
-
-  const context: StoreApi = {
-    dispatch: async (event) => wrapped.current?.dispatch(event),
-    state,
-  };
+    if (!isInit.current) {
+      isInit.current = true;
+      core.init();
+    }
+  }, [core]);
 
   return react.createElement(
     CoreContext.Provider,
-    { value: context },
+    {
+      value: {
+        dispatch: core.send,
+        state,
+      },
+    },
     children,
   );
 }
@@ -81,9 +85,7 @@ export function useDispatch() {
  * @param selector allows selecting a slice of the state and only subscribing to changes to that particular slice
  * @returns
  */
-export function useViewModel<T = CoreViewModel>(
-  selector?: Selector<T>,
-) {
+export function useViewModel<T = CoreViewModel>(selector?: Selector<T>) {
   const state = useContext(CoreContext).state;
   if (!state) {
     throw new Error(
