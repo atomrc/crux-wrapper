@@ -4,8 +4,10 @@ import {
   EventVariantDecrement,
   EffectVariantRender,
   ViewModel,
+  EventVariantStartWatch,
 } from "core_types/types/core_types";
 import { getCoreConfig } from "./config";
+import { useEffect, useRef } from "react";
 
 declare module "crux-wrapper/react" {
   type CoreViewModel = ViewModel;
@@ -14,16 +16,15 @@ declare module "crux-wrapper/react" {
 function Counter() {
   const count = useViewModel();
   const dispatch = useDispatch();
-  const increment = async () => {
-    console.time("increment");
-    await dispatch(new EventVariantIncrement());
-    console.timeEnd("increment");
-  };
-  const decrement = async () => {
-    console.time("decrement");
-    await dispatch(new EventVariantDecrement());
-    console.timeEnd("decrement");
-  };
+  const increment = () => dispatch(new EventVariantIncrement());
+  const decrement = () => dispatch(new EventVariantDecrement());
+
+  const a = useRef(false);
+  useEffect(() => {
+    if (a.current) return;
+    a.current = true;
+    dispatch(new EventVariantStartWatch());
+  }, []);
 
   return (
     <div>

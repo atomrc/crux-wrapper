@@ -1,8 +1,10 @@
 use crux_core::{
+    capability::Operation,
     macros::effect,
     render::{render, RenderOperation},
     Command,
 };
+use futures_util::StreamExt;
 use serde::{Deserialize, Serialize};
 
 // ANCHOR: model
@@ -24,13 +26,31 @@ pub struct ViewModel {
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum Event {
+    StartWatch,
     Increment,
     Decrement,
+
+    #[serde(skip)]
+    Incremement10,
+}
+
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
+pub struct StreamOperation;
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
+pub enum StreamReponse {
+    Data(String),
+    End,
+}
+
+impl Operation for StreamOperation {
+    type Output = StreamReponse;
 }
 
 #[effect]
 pub enum Effect {
     Render(RenderOperation),
+    Stream(StreamOperation),
 }
 
 #[derive(Default)]
@@ -45,6 +65,12 @@ impl crux_core::App for App {
 
     fn update(&self, msg: Event, model: &mut Model, _caps: &()) -> Command<Effect, Event> {
         match msg {
+            Event::StartWatch => Command::new(|ctx| async move {
+                let mut stream = ctx.stream_from_shell(StreamOperation);
+                while let Some(message) = stream.next().await {
+                    ctx.send_event(Event::Incremement10);
+                }
+            }),
             Event::Increment => {
                 model.count = Count {
                     value: model.count.value + 1,
@@ -54,6 +80,13 @@ impl crux_core::App for App {
             Event::Decrement => {
                 model.count = Count {
                     value: model.count.value - 1,
+                };
+                render()
+            }
+
+            Event::Incremement10 => {
+                model.count = Count {
+                    value: model.count.value + 10,
                 };
                 render()
             }

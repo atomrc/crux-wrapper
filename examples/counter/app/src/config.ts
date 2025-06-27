@@ -2,8 +2,10 @@ import { BincodeSerializer, BincodeDeserializer } from "core_types/bincode/mod";
 import { ViewModel, Request } from "core_types/types/core_types";
 import { CoreWorkerApi } from "./worker";
 import { wrap } from "comlink";
+import { CoreConfig } from "crux-wrapper";
+import { handleEffect } from "./effects";
 
-export function getCoreConfig(worker: boolean) {
+export function getCoreConfig(worker: boolean): CoreConfig {
   const init = worker
     ? async () => {
         const worker = wrap<CoreWorkerApi>(
@@ -22,7 +24,7 @@ export function getCoreConfig(worker: boolean) {
 
   return {
     init,
-    onEffect: async () => undefined,
+    onEffect: handleEffect,
     serializerConfig: {
       BincodeSerializer,
       BincodeDeserializer,
