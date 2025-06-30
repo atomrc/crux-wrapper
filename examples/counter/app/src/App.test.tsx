@@ -8,10 +8,12 @@ describe("App", () => {
     document.body.innerHTML = "";
   });
 
-  it("should increment when increment is clicked", async () => {
-    const { getByText } = render(<App />);
-    const inc = getByText("+");
+  it("should increment and decrement when buttons are clicked", async () => {
+    const { getByText, unmount } = render(<App />);
 
+    await waitFor(() => getByText("Welcome"));
+
+    const inc = getByText("+");
     act(() => inc.click());
 
     await waitFor(() => {
@@ -25,5 +27,25 @@ describe("App", () => {
     await waitFor(() => {
       expect(getByText("0")).toBeDefined();
     });
+    unmount();
+  });
+
+  it("should increment by 10 every second", async () => {
+    const { getByText, container, unmount } = render(<App />);
+
+    await waitFor(() => getByText("Welcome"));
+    expect(getByText("0")).toBeDefined();
+
+    vi.advanceTimersToNextTimer();
+    await waitFor(() => {
+      expect(getByText("10")).toBeDefined();
+    });
+
+    vi.advanceTimersToNextTimer();
+    await waitFor(() => {
+      expect(getByText("20")).toBeDefined();
+    });
+
+    unmount();
   });
 });

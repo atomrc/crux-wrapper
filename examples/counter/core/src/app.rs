@@ -27,6 +27,7 @@ pub struct ViewModel {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum Event {
     StartWatch,
+    StopWatch,
     Increment,
     Decrement,
 
@@ -35,7 +36,10 @@ pub enum Event {
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
-pub struct StreamOperation;
+pub enum StreamOperation {
+    Start,
+    Stop,
+}
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub enum StreamReponse {
@@ -66,11 +70,12 @@ impl crux_core::App for App {
     fn update(&self, msg: Event, model: &mut Model, _caps: &()) -> Command<Effect, Event> {
         match msg {
             Event::StartWatch => Command::new(|ctx| async move {
-                let mut stream = ctx.stream_from_shell(StreamOperation);
-                while let Some(message) = stream.next().await {
+                let mut stream = ctx.stream_from_shell(StreamOperation::Start);
+                while let Some(_) = stream.next().await {
                     ctx.send_event(Event::Incremement10);
                 }
             }),
+            Event::StopWatch => Command::notify_shell(StreamOperation::Stop).into(),
             Event::Increment => {
                 model.count = Count {
                     value: model.count.value + 1,

@@ -1,20 +1,21 @@
 import {
   EffectVariantStream,
+  StreamOperation,
+  StreamOperationVariantStart,
+  StreamOperationVariantStop,
   StreamReponseVariantData,
 } from "core_types/types/core_types";
 import { CoreConfig, is } from "crux-wrapper";
+import { handleStreamOperation } from "./stream";
 
 export const handleEffect: CoreConfig<any, any>["onEffect"] = async (
   id,
   effect,
-  { stream },
+  { respond },
 ) => {
   switch (true) {
-    case is(effect, EffectVariantStream): {
-      setInterval(() => {
-        stream(new StreamReponseVariantData("ok"));
-      }, 1000);
-    }
+    case is(effect, EffectVariantStream):
+      return handleStreamOperation(effect.value, respond);
   }
   return undefined;
 };

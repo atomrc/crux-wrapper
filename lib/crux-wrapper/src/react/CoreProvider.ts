@@ -14,12 +14,15 @@ import type { Request } from "../types";
 type StoreApi = {
   dispatch: (event: CruxEntity) => Promise<void>;
   state?: State;
+  /** whether the core has been loaded into memory and ready to be used */
+  ready: boolean;
 };
 
 const CoreContext = react.createContext<StoreApi>({
   dispatch: () => {
-    throw new Error("");
+    throw new Error("CoreProvider not initialized");
   },
+  ready: false,
 });
 
 type Props = {
@@ -45,24 +48,27 @@ export function CoreProvider({
   initialState,
 }: Props) {
   const isInit = useRef(false);
-  const state = new State(initialState);
-  const core = wrap({
-    ...coreConfig,
-    onEffect: async (id, effect, callbacks) => {
-      if (RenderEffect && is(effect, RenderEffect)) {
-        state.setViewModel(await callbacks.view());
-        return;
-      }
-      return coreConfig.onEffect(id, effect, callbacks);
-    },
-  });
+  const state = useRef(new State(initialState));
+  const [ready, setReady] = react.useState(false);
+  const core = useRef(
+    wrap({
+      ...coreConfig,
+      onEffect: async (id, effect, callbacks) => {
+        if (RenderEffect && is(effect, RenderEffect)) {
+          state.current.setViewModel(await callbacks.view());
+          return;
+        }
+        return coreConfig.onEffect(id, effect, callbacks);
+      },
+    }),
+  );
 
   // We use layout effect in this case to make sure it's going to be called before the consumer starts sending events
   // Using useEffect would result in the consumer being able (via a useEffect) to call `send` before the core is initialized
   useLayoutEffect(() => {
     if (!isInit.current) {
       isInit.current = true;
-      core.init();
+      core.current.init().then(() => setReady(true));
     }
   }, [core]);
 
@@ -70,8 +76,9 @@ export function CoreProvider({
     CoreContext.Provider,
     {
       value: {
-        dispatch: core.send,
-        state,
+        dispatch: core.current.send,
+        state: state.current,
+        ready,
       },
     },
     children,
@@ -100,4 +107,8 @@ export function useViewModel<T = CoreViewModel>(selector?: Selector<T>) {
     (onStoreChange) => state.subscribe(onStoreChange),
     () => state.getViewModel(selector),
   );
+}
+
+export function useIsReady() {
+  return useContext(CoreContext).ready;
 }

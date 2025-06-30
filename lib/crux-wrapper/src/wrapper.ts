@@ -123,6 +123,7 @@ export function wrap<VM, R extends Request>({
         return;
       }
       apiPromise = init();
+      return apiPromise;
     },
     send: async (event: CruxEntity) => {
       if (!apiPromise) {
@@ -131,12 +132,12 @@ export function wrap<VM, R extends Request>({
       const api = await apiPromise;
       return sender(
         api,
-        (id, effect, stream) =>
+        (id, effect, respond) =>
           onEffect(id, effect, {
             view: async () => {
               return serializer.deserializeView(await api.view());
             },
-            stream,
+            respond,
           }),
         serializer,
       )(event);
