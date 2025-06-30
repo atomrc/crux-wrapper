@@ -3,7 +3,13 @@ import type { CoreViewModel } from "crux-wrapper/react";
 export type Selector<T> = (viewModel: CoreViewModel) => T;
 
 export class State extends EventTarget {
-  constructor(private viewModel: CoreViewModel) {
+  constructor(
+    private viewModel: CoreViewModel,
+    private mergeViewModel: (
+      newState: CoreViewModel,
+      oldState: CoreViewModel,
+    ) => CoreViewModel = (state) => state,
+  ) {
     super();
   }
 
@@ -14,7 +20,7 @@ export class State extends EventTarget {
   }
 
   setViewModel(viewModel: CoreViewModel) {
-    this.viewModel = viewModel;
+    this.viewModel = this.mergeViewModel( viewModel, this.viewModel);
     this.dispatchEvent(new CustomEvent("updated"));
   }
 

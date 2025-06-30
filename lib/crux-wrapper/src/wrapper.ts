@@ -50,6 +50,15 @@ interface BaseConfig<VM> {
    * The function that will be called for every single effect that the core requests
    */
   onEffect: OnEffect<VM>;
+  /**
+   * optional function that will be called when a new view model is given by a `rende` effect.
+   * This function could be used to optimize re-rendering and only update slices of the state that have changed on every render.
+   * The main issue with Crux, is that a render will yield a completely new view model on every render. Which means that every object in the view model tree will be a new instance on every render.
+   * So react will re-render every component that uses the view model, even if the data has not changed.
+   *
+   * This function allows you to take the old view model and the new one and merge them together trying to keep unchanged object references as stable as possible
+   */
+  mergeViewModel?: (oldViewModel: VM, newViewModel: VM) => VM;
 }
 
 interface ConfigWithSerializer<VM, R> extends BaseConfig<VM> {
