@@ -13,10 +13,10 @@ export type OnEffect<VM> = (
   id: number,
   effect: CruxEntity,
   {
-    stream,
+    respond,
     view,
   }: {
-    stream: (response: CruxEntity) => void;
+    respond: (response: CruxEntity) => void;
     view: () => Promise<VM>;
   },
 ) => Promise<undefined | CruxEntity>;

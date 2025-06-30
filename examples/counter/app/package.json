@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "pnpm run build:core && vite build",
-    "build:core": "cd ../core && wasm-pack build --target web --dev && sh typegen.sh",
+    "build": "pnpm run build:core && pnpm build:typegen && vite build",
+    "build:core": "cd ../core && wasm-pack build --target web --dev",
+    "build:typegen": "cd ../core && sh typegen.sh",
     "start": "vite",
     "test": "vitest"
   },

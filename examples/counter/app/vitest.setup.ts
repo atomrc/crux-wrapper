@@ -1,5 +1,6 @@
 import fs from "node:fs";
 // Override global fetch to allow fetching local files on the filesystem (This is used to load the wasm file)
+const baseFetch = globalThis.fetch;
 globalThis.fetch = async (url: RequestInfo | URL) => {
   const path =
     url instanceof URL ? url.pathname : typeof url === "string" ? url : url.url;

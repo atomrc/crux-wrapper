@@ -375,6 +375,7 @@ name = "core"
 version = "0.1.0"
 dependencies = [
  "crux_core",
+ "futures-util",
  "lazy_static",
  "serde",
  "serde_bytes",
