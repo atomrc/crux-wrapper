@@ -1,4 +1,10 @@
-import { EffectVariantStream, StreamOperation, StreamOperationVariantStart, StreamOperationVariantStop, StreamReponseVariantData } from "core_types/types/core_types";
+import {
+  EffectVariantStream,
+  StreamOperation,
+  StreamOperationVariantStart,
+  StreamOperationVariantStop,
+  StreamReponseVariantData,
+} from "core_types/types/core_types";
 import { is } from "crux-wrapper";
 
 let streamInterval: NodeJS.Timeout | undefined;
