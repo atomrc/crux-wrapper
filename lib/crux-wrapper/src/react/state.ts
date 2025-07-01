@@ -20,7 +20,7 @@ export class State extends EventTarget {
   }
 
   setViewModel(viewModel: CoreViewModel) {
-    this.viewModel = this.mergeViewModel( viewModel, this.viewModel);
+    this.viewModel = this.mergeViewModel(viewModel, this.viewModel);
     this.dispatchEvent(new CustomEvent("updated"));
   }
 

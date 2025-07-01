@@ -1,7 +1,7 @@
 {
   "name": "crux-wrapper",
   "version": "2.3.0",
-  "description": "",
+  "description": "A React provider for your crux application",
   "type": "module",
   "files": [
     "dist"
@@ -16,7 +16,10 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest"
   },
-  "keywords": [],
+  "keywords": [
+    "crux",
+    "react"
+  ],
   "author": "",
   "license": "ISC",
   "devDependencies": {

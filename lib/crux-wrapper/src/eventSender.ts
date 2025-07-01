@@ -3,7 +3,8 @@ import type { CruxApi, CruxEntity, CruxSerializer, Request } from "./types";
 export type OnEffect = (
   id: number,
   effect: CruxEntity,
-  stream: (response: CruxEntity) => void,
+  respond: (response: CruxEntity) => Promise<void>,
+  send: (response: CruxEntity) => Promise<void>,
 ) => Promise<undefined | CruxEntity>;
 
 export function sender<VM, R extends Request>(
@@ -24,7 +25,10 @@ export function sender<VM, R extends Request>(
         const respond = (response: CruxEntity) => {
           return sendResponse(id, serializer.serialize(response));
         };
-        const response = await onEffect(id, effect, respond);
+        const send = (event: CruxEntity) => {
+          return sendEvent(serializer.serialize(event));
+        };
+        const response = await onEffect(id, effect, respond, send);
         if (response) {
           respond(response);
         }

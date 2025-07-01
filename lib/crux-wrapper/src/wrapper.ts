@@ -141,11 +141,12 @@ export function wrap<VM, R extends Request>({
       const api = await apiPromise;
       return sender(
         api,
-        (id, effect, respond) =>
+        (id, effect, respond, send) =>
           onEffect(id, effect, {
             view: async () => {
               return serializer.deserializeView(await api.view());
             },
+            send,
             respond,
           }),
         serializer,
