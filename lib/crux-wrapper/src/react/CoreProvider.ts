@@ -29,7 +29,7 @@ const CoreContext = react.createContext<StoreApi>({
 type BaseProps = {
   children: React.ReactNode;
   coreConfig: CoreConfig<CoreViewModel, Request>;
-}
+};
 
 type StatelessProps = BaseProps & {
   RenderEffect?: undefined;
@@ -58,7 +58,7 @@ type StatefulProps = BaseProps & {
     newViewModel: CoreViewModel,
     oldViewModel: CoreViewModel,
   ) => CoreViewModel;
-}
+};
 
 type Props = StatelessProps | StatefulProps;
 /**
@@ -139,14 +139,14 @@ export function useViewModel<T = CoreViewModel>(selector?: Selector<T>) {
  * @returns
  */
 export function useViewModelGetter<T = CoreViewModel>(selector?: Selector<T>) {
-    const state = useContext(CoreContext).state;
-    if (!state) {
-      throw new Error(
-        "useViewModel cannot be used when RenderEffect property was not set",
-      );
-    }
+  const state = useContext(CoreContext).state;
+  if (!state) {
+    throw new Error(
+      "useViewModel cannot be used when RenderEffect property was not set",
+    );
+  }
 
-    return useCallback(() => state.getViewModel(selector), [selector, state]);
+  return useCallback(() => state.getViewModel(selector), [selector, state]);
 }
 
 export function useIsReady() {

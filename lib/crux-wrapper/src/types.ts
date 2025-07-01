@@ -14,9 +14,11 @@ export type OnEffect<VM> = (
   effect: CruxEntity,
   {
     respond,
+    send,
     view,
   }: {
-    respond: (response: CruxEntity) => void;
+    respond: (response: CruxEntity) => Promise<void>;
+    send: (event: CruxEntity) => Promise<void>;
     view: () => Promise<VM>;
   },
 ) => Promise<undefined | CruxEntity>;
