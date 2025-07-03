@@ -19,7 +19,7 @@ type StoreApi = {
   ready: boolean;
 };
 
-const CoreContext = react.createContext<StoreApi>({
+export const CoreContext = react.createContext<StoreApi>({
   dispatch: () => {
     throw new Error("CoreProvider not initialized");
   },
