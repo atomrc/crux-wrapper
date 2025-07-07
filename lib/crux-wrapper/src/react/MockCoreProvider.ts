@@ -1,6 +1,6 @@
 import react from "react";
-import { State } from "./state";
-import { CoreContext } from "./CoreProvider";
+import { State } from "./state.js";
+import { CoreContext } from "./CoreProvider.js";
 
 type Props = { children: React.ReactNode; state: State };
 /**

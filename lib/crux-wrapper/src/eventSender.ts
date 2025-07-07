@@ -1,4 +1,4 @@
-import type { CruxApi, CruxEntity, CruxSerializer, Request } from "./types";
+import type { CruxApi, CruxEntity, CruxSerializer, Request } from "./types.js";
 
 export type OnEffect = (
   id: number,
