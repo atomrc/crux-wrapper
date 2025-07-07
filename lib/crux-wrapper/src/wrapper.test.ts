@@ -1,7 +1,7 @@
 import { describe, expect, it, vitest } from "vitest";
 
-import type { CruxApi } from "./types";
-import { wrap, type Serializer } from "./wrapper";
+import type { CruxApi } from "./types.js";
+import { wrap, type Serializer } from "./wrapper.js";
 
 function serialize(entity: object) {
   const str = JSON.stringify(entity);

@@ -1,3 +1,3 @@
-export * from "./wrapper";
-export type { CruxApi, CruxEntity } from "./types";
-export * from "./typeguards";
+export * from "./wrapper.js";
+export type { CruxApi, CruxEntity } from "./types.js";
+export * from "./typeguards.js";

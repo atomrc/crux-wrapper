@@ -1,11 +1,11 @@
-import { sender } from "./eventSender";
+import { sender } from "./eventSender.js";
 import type {
   CruxApi,
   CruxEntity,
   OnEffect,
   Request,
   SerializableClass,
-} from "./types";
+} from "./types.js";
 
 type BinSerializer = {
   getBytes(): Uint8Array;

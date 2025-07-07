@@ -1,5 +1,5 @@
-import { is, wrap } from "../";
-import type { CoreConfig, Constructor, CruxEntity } from "../";
+import { is, wrap } from "../index.js";
+import type { CoreConfig, Constructor, CruxEntity } from "../index.js";
 import react, {
   useCallback,
   useContext,
@@ -8,9 +8,9 @@ import react, {
   useRef,
   useSyncExternalStore,
 } from "react";
-import { State, type Selector } from "./state";
+import { State, type Selector } from "./state.js";
 import type { CoreViewModel } from "crux-wrapper/react";
-import type { Request } from "../types";
+import type { Request } from "../types.js";
 
 type StoreApi = {
   dispatch: (event: CruxEntity) => Promise<void>;
