@@ -30,7 +30,7 @@ export function sender<VM, R extends Request>(
         };
         const response = await onEffect(id, effect, respond, send);
         if (response) {
-          respond(response);
+          await respond(response);
         }
       }),
     );
