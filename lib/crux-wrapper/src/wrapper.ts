@@ -1,4 +1,4 @@
-import { sender } from "./eventSender.js";
+import { createSender } from "./eventSender.js";
 import type {
   CruxApi,
   CruxEntity,
@@ -45,7 +45,7 @@ interface BaseConfig<VM> {
    * })
    * ```
    */
-  init: () => Promise<CruxApi>;
+  init: (onEffect: (effects: Uint8Array) => void) => Promise<CruxApi>;
   /**
    * The function that will be called for every single effect that the core requests
    */
@@ -123,34 +123,23 @@ export function wrap<VM, R extends Request>({
   serializerConfig,
   serializer: baseSerializer,
 }: CoreConfig<VM, R>) {
-  let apiPromise: Promise<CruxApi> | undefined = undefined;
+  let apiRef: { value: Promise<CruxApi> | null } = { value: null };
   const serializer = baseSerializer ?? createSerializer(serializerConfig);
 
+  const sender = createSender(
+    apiRef,
+
+    onEffect,
+    serializer,
+  );
   return {
     init: async () => {
-      if (apiPromise) {
+      if (apiRef.value) {
         return;
       }
-      apiPromise = init();
-      return apiPromise;
+      apiRef.value = init(sender.handleEffect);
+      await apiRef.value;
     },
-    send: async (event: CruxEntity) => {
-      if (!apiPromise) {
-        throw new Error("Core not initialized. Call init() first.");
-      }
-      const api = await apiPromise;
-      return sender(
-        api,
-        (id, effect, respond, send) =>
-          onEffect(id, effect, {
-            view: async () => {
-              return serializer.deserializeView(await api.view());
-            },
-            send,
-            respond,
-          }),
-        serializer,
-      )(event);
-    },
+    send: sender.send,
   };
 }
