@@ -44,7 +44,7 @@ const init = async () => api;
 describe("crux wrapper", () => {
   it("should throw if core has not been initialized", () => {
     const crux = wrap({ init, onEffect: vitest.fn(), serializer });
-    expect(crux.send(new Event())).rejects.toThrowError(
+    expect(() => crux.send(new Event())).toThrowError(
       "Core not initialized. Call init() first.",
     );
   });
