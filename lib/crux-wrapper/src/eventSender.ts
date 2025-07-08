@@ -1,25 +1,25 @@
-import type { CruxApi, CruxEntity, CruxSerializer, Request } from "./types.js";
+import type {
+  CruxApi,
+  CruxEntity,
+  CruxSerializer,
+  OnEffect,
+  Request,
+} from "./types.js";
 
-export type OnEffect = (
-  id: number,
-  effect: CruxEntity,
-  respond: (response: CruxEntity) => Promise<void>,
-  send: (response: CruxEntity) => Promise<void>,
-) => Promise<undefined | CruxEntity>;
-
-export function sender<VM, R extends Request>(
-  api: CruxApi,
-  onEffect: OnEffect,
+export function createSender<VM, R extends Request>(
+  apiRef: { value: null | Promise<CruxApi> },
+  onEffect: OnEffect<VM>,
   serializer: CruxSerializer<VM, R>,
 ) {
-  async function exhaust(
-    sendPayload: () =>
-      | Promise<Uint8Array<ArrayBufferLike>>
-      | Uint8Array<ArrayBufferLike>,
-  ) {
-    const response = sendPayload();
+  function getApi() {
+    if (!apiRef.value) {
+      throw new Error("Core not initialized. Call init() first.");
+    }
+    return apiRef.value;
+  }
 
-    const effects = serializer.deserializeEffects(await response);
+  async function handleEffect(rawEffects: Uint8Array) {
+    const effects = serializer.deserializeEffects(rawEffects);
     await Promise.all(
       effects.map(async ({ id, effect }) => {
         const respond = (response: CruxEntity) => {
@@ -28,7 +28,11 @@ export function sender<VM, R extends Request>(
         const send = (event: CruxEntity) => {
           return sendEvent(serializer.serialize(event));
         };
-        const response = await onEffect(id, effect, respond, send);
+        const view = async () => {
+          const api = await getApi();
+          return serializer.deserializeView(await api.view());
+        };
+        const response = await onEffect(id, effect, { respond, send, view });
         if (response) {
           await respond(response);
         }
@@ -36,14 +40,29 @@ export function sender<VM, R extends Request>(
     );
   }
 
-  function sendEvent(event: Uint8Array) {
-    return exhaust(() => api.process_event(event));
-  }
-  function sendResponse(id: number, response: Uint8Array) {
-    return exhaust(() => api.handle_response(id, response));
+  async function exhaust(
+    sendPayload: () =>
+      | Promise<Uint8Array<ArrayBufferLike>>
+      | Uint8Array<ArrayBufferLike>,
+  ) {
+    const effects = await sendPayload();
+    return handleEffect(effects);
   }
 
-  return (event: CruxEntity) => {
-    return sendEvent(serializer.serialize(event));
+  function sendEvent(event: Uint8Array) {
+    return exhaust(async () => (await getApi()).process_event(event));
+  }
+  function sendResponse(id: number, response: Uint8Array) {
+    return exhaust(async () => (await getApi()).handle_response(id, response));
+  }
+
+  return {
+    send(event: CruxEntity) {
+      if (!apiRef.value) {
+        throw new Error("Core not initialized. Call init() first.");
+      }
+      return sendEvent(serializer.serialize(event));
+    },
+    handleEffect,
   };
 }
