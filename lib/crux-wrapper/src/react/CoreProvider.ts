@@ -146,7 +146,7 @@ export function useViewModelGetter<T = CoreViewModel>(selector?: Selector<T>) {
     );
   }
 
-  return useCallback(() => state.getViewModel(selector), [selector, state]);
+  return useCallback(() => state.getViewModel(selector), [state]);
 }
 
 export function useIsReady() {
