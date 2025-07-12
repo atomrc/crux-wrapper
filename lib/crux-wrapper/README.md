@@ -7,6 +7,15 @@ It brings:
 - a react `Provider` that will allow you to use your crux app as if it was a redux store
 - the `is` function that allows easy typeguarding of payloads coming from the crux app
 
+Table of content:
+
+* [Installation](#installation)
+* [Usage with react](#usage-with-react)
+* [Typescript helper](#typescript-helper)
+* [Running your crux app in a web worker](#running-your-crux-app-in-a-web-worker)
+* [Usage in a VanillaJS app](#usage-in-a-vanillajs-app)
+* [Testing](#testing)
+
 ## Installation
 
 ```bash
@@ -22,13 +31,16 @@ The `react` package allows you to have access to 2 highly useful hooks:
 
 To setup the react provider, you first need to instantiate the `CoreProvider` like so
 
-```typescript
+```tsx
 import { CoreProvider } from "crux-wrapper/react";
 
 // All the imports below are from your crux app. They are needed so that the crux-wrapper knows how to talk to your core
 import init, * as core from "shared";
-import { ViewModel, Request, } from "shared_types/types/core_types";
-import { BincodeSerializer, BincodeDeserializer } from "shared_types/bincode/mod";
+import { ViewModel, Request } from "shared_types/types/core_types";
+import {
+  BincodeSerializer,
+  BincodeDeserializer,
+} from "shared_types/bincode/mod";
 
 // Will tell typescript what the final view model is. It will allow correctly typing the useViewModel hook
 declare module "crux-wrapper/react" {
@@ -37,8 +49,12 @@ declare module "crux-wrapper/react" {
 
 export function App() {
   const coreConfig = {
-    init: () => init().then(() => core), // The wasm init function that will expose your core's API
-    onEffect: async (id, effect) => {/*...*/}, // the handler that will be passed all the effects the core needs to perform
+    // The wasm init function that will expose your core's API
+    init: () => init().then(() => core),
+    // the handler that will be passed all the effects the core needs to perform
+    onEffect: async (effect) => {
+      /*...*/
+    },
     serializerConfig: {
       BincodeSerializer,
       BincodeDeserializer,
@@ -61,7 +77,7 @@ export function App() {
 
 Once this is setup you can use the `useViewModel` and `useDispatch` hooks in all the children comopnents:
 
-```typescript
+```tsx
 function Counter() {
   const viewModel = useViewModel(); // Will subscribe to any changes to the viewmodel
   const dispatch = useDispatch();
@@ -69,8 +85,12 @@ function Counter() {
   return (
     <div>
       <p>Count: {viewModel.count}</p>
-      <button onClick={() => dispatch(new EventVariantIncrement())}>Increment</button>
-      <button onClick={() => dispatch(new EventVariantDecrement())}>Decrement</button>
+      <button onClick={() => dispatch(new EventVariantIncrement())}>
+        Increment
+      </button>
+      <button onClick={() => dispatch(new EventVariantDecrement())}>
+        Decrement
+      </button>
     </div>
   );
 }
@@ -78,7 +98,7 @@ function Counter() {
 
 Being able to `await` for event allows you, for example, to use `useTransition` to show a loader when something is being processed
 
-```typescript
+```tsx
 import { useState, useTransition } from "react";
 
 function Counter() {
@@ -248,4 +268,65 @@ const app = wrap({
 await app.init(); // Initialize the crux app (will load the wasm module)
 await app.sendEvent(new EventVariantIncrement()); // Send an event to the crux app
 // At this point you know that all the effects initiated by the event have been fully processed
+```
+
+## Testing
+
+You probably would want to test your react components with the ability to mock the crux app. The `crux-wrapper` provides a `MockCoreProvider` that you can use to mock the core app.
+
+Here is an example that uses `@testing-library/react` to render a component with the mocked core:
+
+```tsx
+import { render } from "@testing-library/react";
+import { MockCoreProvider, State } from "crux-wrapper/react";
+import type { ViewModel } from "shared_types/types/shared_types";
+
+import { router } from "@/App/router";
+
+function renderWithCore(
+  component: React.ReactNode,
+  options?: { dispatch?: () => void; initialState?: ViewModel } = {},
+) {
+  const state = new State(initialState);
+  const renderResult = render(
+    <MockCoreProvider dispatch={dispatch} state={state}>
+      {component}
+    </MockCoreProvider>,
+  );
+
+  return {
+    ...renderResult,
+    updateViewModel: (payload: Partial<ViewModel>) =>
+      state.setViewModel(payload as ViewModel),
+  };
+}
+
+describe("Counter", () => {
+  it("sends an increment event when clicking on the increment button", () => {
+    const dispatch = jest.fn();
+    const { getByText, updateViewModel } = renderWithCoreLogic(
+      <MyComponent />,
+      { dispatch },
+    );
+
+    getByText("Increment").click();
+
+    expect(dispatch).toHaveBeenCalledWith(new EventVariantIncrement());
+  });
+
+  it("updates the counter when viewModel is updated", () => {
+    const { getByText, updateViewModel } = renderWithCoreLogic(
+      <MyComponent />,
+      { initialState: { count: 0 } },
+    );
+
+    expect(getByText("Count: 0")).not.toBeNull();
+
+    act(() => {
+      updateViewModel({ count: 1 });
+    });
+
+    expect(getByText("Count: 1")).not.toBeNull();
+  });
+});
 ```
