@@ -16,8 +16,14 @@ export type OnEffect<VM> = (
     send,
     view,
   }: {
+    /**
+     * Sends a response back to the core related to the that is being processed.
+     * Can also be used for streaming responses back
+     */
     respond: (response: CruxEntity) => Promise<void>;
+    /** Sends a new event to the core (not a response) */
     send: (event: CruxEntity) => Promise<void>;
+    /** Pull the latest viewModel state from the core */
     view: () => Promise<VM>;
   },
 ) => Promise<undefined | CruxEntity>;

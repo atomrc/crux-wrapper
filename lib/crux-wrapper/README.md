@@ -52,7 +52,14 @@ export function App() {
     // The wasm init function that will expose your core's API
     init: () => init().then(() => core),
     // the handler that will be passed all the effects the core needs to perform
-    onEffect: async (effect) => {
+    onEffect: async (effect, {
+      // send a response to the core. This function is tied to the effect send, you don't need to pass the effect id. This function could also be used for streaming responses back
+      respond,
+      // to send a new event to the core (not a response)
+      send,
+      // get the latest view model
+      view
+    }) => {
       /*...*/
     },
     serializerConfig: {
