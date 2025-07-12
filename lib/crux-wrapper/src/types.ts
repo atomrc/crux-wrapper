@@ -10,7 +10,6 @@ export type CruxEntity = {
 };
 
 export type OnEffect<VM> = (
-  id: number,
   effect: CruxEntity,
   {
     respond,

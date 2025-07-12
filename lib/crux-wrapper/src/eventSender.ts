@@ -32,7 +32,7 @@ export function createSender<VM, R extends Request>(
           const api = await getApi();
           return serializer.deserializeView(await api.view());
         };
-        const response = await onEffect(id, effect, { respond, send, view });
+        const response = await onEffect(effect, { respond, send, view });
         if (response) {
           await respond(response);
         }

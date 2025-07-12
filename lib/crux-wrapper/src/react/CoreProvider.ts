@@ -77,12 +77,12 @@ export function CoreProvider({
   const core = useRef(
     wrap({
       ...coreConfig,
-      onEffect: async (id, effect, callbacks) => {
+      onEffect: async (effect, callbacks) => {
         if (state.current && RenderEffect && is(effect, RenderEffect)) {
           state.current.setViewModel(await callbacks.view());
           return;
         }
-        return coreConfig.onEffect(id, effect, callbacks);
+        return coreConfig.onEffect(effect, callbacks);
       },
     }),
   );
