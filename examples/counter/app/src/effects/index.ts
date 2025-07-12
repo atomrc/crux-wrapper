@@ -9,7 +9,6 @@ import { CoreConfig, is } from "crux-wrapper";
 import { handleStreamOperation } from "./stream";
 
 export const handleEffect: CoreConfig<any, any>["onEffect"] = async (
-  id,
   effect,
   { respond },
 ) => {

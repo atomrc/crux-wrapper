@@ -65,7 +65,7 @@ describe("crux wrapper", () => {
 
   it("sends responses back to the crux api", async () => {
     const effect = { id: 0, effect: new Effect() };
-    const onEffect = vitest.fn(async (id: number) => new Response());
+    const onEffect = vitest.fn(async () => new Response());
     vitest.spyOn(api, "process_event").mockResolvedValue(serialize([effect]));
     vitest.spyOn(api, "handle_response");
     const crux = wrap({ init, onEffect, serializer });
