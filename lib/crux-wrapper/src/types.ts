@@ -1,4 +1,4 @@
-type EffectResponse = any;
+type EffectResponse = CruxEntity;
 
 export type EventCycleCallbacks = {
   onEffect: (effect: unknown) => undefined | EffectResponse;
@@ -45,7 +45,7 @@ export type Request = {
 };
 
 export type SerializableClass<T> = {
-  new (...args: any[]): T;
+  new (...args: unknown[]): T;
   deserialize(serializer: unknown): T;
 };
 

@@ -1,10 +1,5 @@
 import { is, wrap } from "../index.js";
-import type {
-  CoreConfig,
-  Constructor,
-  CruxEntity,
-  LogEntry,
-} from "../index.js";
+import type { CoreConfig, Constructor, LogEntry } from "../index.js";
 import react, {
   useCallback,
   useContext,
@@ -48,7 +43,7 @@ type StatefulProps = BaseProps & {
   /**
    * Will allow the provider to expose the `useViewMode` hook and compute state updates for you
    */
-  RenderEffect: Constructor<any>;
+  RenderEffect: Constructor<object>;
   /**
    * Initial state that is going to be loaded before any interaction with the core happens
    */
@@ -81,7 +76,9 @@ class Logger {
 
   log(entry: LogEntry) {
     this.state = [...this.state, entry];
-    this.listeners.forEach((listener) => listener());
+    this.listeners.forEach((listener) => {
+      listener();
+    });
   }
 
   getLogs() {
@@ -89,7 +86,7 @@ class Logger {
   }
 }
 
-let logger: Logger = new Logger();
+const logger: Logger = new Logger();
 type Props = StatelessProps | StatefulProps;
 /**
  * Provides a context that exposes the crux api.
@@ -130,7 +127,14 @@ export function CoreProvider({
   useLayoutEffect(() => {
     if (!isInit.current) {
       isInit.current = true;
-      core.current.init().then(() => setReady(true));
+      core.current
+        .init()
+        .then(() => {
+          setReady(true);
+        })
+        .catch((error: unknown) => {
+          console.error("Failed to initialize Crux core:", error);
+        });
     }
   }, [core]);
 

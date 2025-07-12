@@ -25,4 +25,5 @@ jobs:
         run: |
           pnpm install
           pnpm --filter "./lib/*" typecheck
+          pnpm --filter "./lib/*" lint
           pnpm --filter "./lib/*" test
