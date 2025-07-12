@@ -2,6 +2,7 @@ import {
   CoreProvider,
   useDispatch,
   useIsReady,
+  useLogs,
   useViewModel,
 } from "crux-wrapper/react";
 import {
@@ -13,10 +14,34 @@ import {
   EventVariantStopWatch,
 } from "core_types/types/core_types";
 import { getCoreConfig } from "./config";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { LogEntry as CruxLogEntry } from "crux-wrapper";
 
 declare module "crux-wrapper/react" {
   type CoreViewModel = ViewModel;
+}
+
+function LogEntry({ log }: { log: CruxLogEntry }) {
+  const time = log.type === "effect" ? ` (took ${log.time}ms)` : "";
+  return (
+    <li>
+      {log.at} <strong>{log.type} {log.name}</strong> {time}
+    </li>
+  );
+}
+
+function DevTools() {
+  const logs = useLogs();
+  return (
+    <div>
+      <h2>Logs</h2>
+      <ul>
+        {logs.map((log, index) => (
+          <LogEntry log={log} key={index} />
+        ))}
+      </ul>
+    </div>
+  );
 }
 
 function Counter() {
@@ -41,7 +66,7 @@ function Counter() {
   return (
     <div>
       <div>Welcome</div>
-      <div>{count}</div>
+      <div>count: {count}</div>
       <button onClick={increment}>+</button>{" "}
       <button onClick={decrement}>-</button>
     </div>
@@ -57,6 +82,7 @@ export function App() {
       RenderEffect={EffectVariantRender}
     >
       <Counter />
+      <DevTools />
     </CoreProvider>
   );
 }

@@ -18,6 +18,7 @@ export function MockCoreProvider({ children, dispatch, state }: Props) {
       value: {
         dispatch: dispatch ?? (async () => {}),
         state: state,
+        logs: [],
         ready: true,
       },
     },

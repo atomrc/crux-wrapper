@@ -1,6 +1,6 @@
-import { describe, expect, it, vitest } from "vitest";
+import { describe, expect, it, vi, vitest } from "vitest";
 
-import type { CruxApi } from "./types.js";
+import type { CruxApi, OnEffect } from "./types.js";
 import { wrap, type Serializer } from "./wrapper.js";
 
 function serialize(entity: object) {
@@ -56,25 +56,89 @@ describe("crux wrapper", () => {
       return { id: i, effect: {} };
     });
     vitest.spyOn(api, "process_event").mockResolvedValue(serialize(effects));
-    const crux = wrap({ init, onEffect, serializer });
+    const crux = wrap({ init, onEffect, serializer, log: true });
     await crux.init();
 
     await crux.send(new Event());
+    expect(crux.logs).toHaveLength(nbEffects + 1); // all the effects + the initial event
+    expect(crux.logs[0]).toEqual(
+      expect.objectContaining({ type: "event", name: "Event" }),
+    );
     expect(onEffect).toHaveBeenCalledTimes(nbEffects);
   });
 
   it("sends responses back to the crux api", async () => {
-    const effect = { id: 0, effect: new Effect() };
+    const effects = [
+      { id: 0, effect: {} },
+      { id: 1, effect: {} },
+    ];
     const onEffect = vitest.fn(async () => new Response());
-    vitest.spyOn(api, "process_event").mockResolvedValue(serialize([effect]));
+    vitest.spyOn(api, "process_event").mockResolvedValue(serialize(effects));
     vitest.spyOn(api, "handle_response");
-    const crux = wrap({ init, onEffect, serializer });
+    const crux = wrap({ init, onEffect, serializer, log: true });
 
     await crux.init();
     await crux.send(new Event());
-    expect(api.handle_response).toHaveBeenCalledWith(
-      effect.id,
-      serialize(new Response()),
+    expect(api.handle_response).toHaveBeenCalledTimes(effects.length);
+    expect(crux.logs).toHaveLength(effects.length + 1); // all the effect + the initial event
+    expect(crux.logs[1]).toEqual(
+      expect.objectContaining({
+        type: "effect",
+        name: "Object",
+      }),
+    );
+    expect(crux.logs[2]).toEqual(
+      expect.objectContaining({
+        type: "effect",
+        name: "Object",
+      }),
+    );
+  });
+
+  it("allows streamins responses back", async () => {
+    const streamEffect = { id: 0, effect: {} };
+    vi.useFakeTimers();
+    const onEffect: OnEffect<any> = vitest.fn(async (effect, { respond }) => {
+      setInterval(() => respond({}), 100);
+      return undefined;
+    });
+    vitest
+      .spyOn(api, "process_event")
+      .mockResolvedValue(serialize([streamEffect]));
+    vitest.spyOn(api, "handle_response");
+    const crux = wrap({ init, onEffect, serializer, log: true });
+
+    await crux.init();
+    await crux.send(new Event());
+    expect(api.handle_response).toHaveBeenCalledTimes(0); // at this point, no response has been sent yet
+    expect(crux.logs).toHaveLength(2); // the streaming effect + the initial event
+    expect(crux.logs[1]).toEqual(
+      expect.objectContaining({
+        type: "effect",
+        name: "Object",
+      }),
+    );
+
+    // We send one stream response
+    await vi.runOnlyPendingTimersAsync();
+    expect(api.handle_response).toHaveBeenCalledTimes(1); // we should have sent one response
+    expect(crux.logs).toHaveLength(3); // the streaming effect + the initial event + the response
+    expect(crux.logs[2]).toEqual(
+      expect.objectContaining({
+        type: "response",
+        name: "Object",
+      }),
+    );
+
+    // We send another stream response
+    await vi.runOnlyPendingTimersAsync();
+    expect(api.handle_response).toHaveBeenCalledTimes(2); // we should have sent one response
+    expect(crux.logs).toHaveLength(4); // the streaming effect + the initial event + the response
+    expect(crux.logs[3]).toEqual(
+      expect.objectContaining({
+        type: "response",
+        name: "Object",
+      }),
     );
   });
 });

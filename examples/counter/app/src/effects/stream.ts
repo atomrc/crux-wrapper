@@ -17,7 +17,7 @@ export function handleStreamOperation(
     case is(operation, StreamOperationVariantStart): {
       streamInterval = setInterval(() => {
         respond(new StreamReponseVariantData("ok"));
-      }, 1000);
+      }, 5000);
       break;
     }
 

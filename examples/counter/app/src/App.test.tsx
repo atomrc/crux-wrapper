@@ -17,7 +17,7 @@ describe("App", () => {
     act(() => inc.click());
 
     await waitFor(() => {
-      expect(getByText("1")).toBeDefined();
+      expect(getByText("count: 1")).toBeDefined();
     });
 
     const dec = getByText("-");
@@ -25,7 +25,7 @@ describe("App", () => {
     act(() => dec.click());
 
     await waitFor(() => {
-      expect(getByText("0")).toBeDefined();
+      expect(getByText("count: 0")).toBeDefined();
     });
     unmount();
   });
@@ -34,16 +34,16 @@ describe("App", () => {
     const { getByText, container, unmount } = render(<App />);
 
     await waitFor(() => getByText("Welcome"));
-    expect(getByText("0")).toBeDefined();
+    expect(getByText("count: 0")).toBeDefined();
 
-    vi.advanceTimersToNextTimer();
+    await vi.runOnlyPendingTimersAsync();
     await waitFor(() => {
-      expect(getByText("10")).toBeDefined();
+      expect(getByText("count: 10")).toBeDefined();
     });
 
-    vi.advanceTimersToNextTimer();
+    await vi.runOnlyPendingTimersAsync();
     await waitFor(() => {
-      expect(getByText("20")).toBeDefined();
+      expect(getByText("count: 20")).toBeDefined();
     });
 
     unmount();
