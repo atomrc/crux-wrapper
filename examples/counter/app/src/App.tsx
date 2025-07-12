@@ -2,7 +2,6 @@ import {
   CoreProvider,
   useDispatch,
   useIsReady,
-  useLogs,
   useViewModel,
 } from "crux-wrapper/react";
 import {
@@ -15,33 +14,10 @@ import {
 } from "core_types/types/core_types";
 import { getCoreConfig } from "./config";
 import { useEffect, useRef, useState } from "react";
-import { LogEntry as CruxLogEntry } from "crux-wrapper";
+import { DevTools } from "./DevTools";
 
 declare module "crux-wrapper/react" {
   type CoreViewModel = ViewModel;
-}
-
-function LogEntry({ log }: { log: CruxLogEntry }) {
-  const time = log.type === "effect" ? ` (took ${log.time}ms)` : "";
-  return (
-    <li>
-      {log.at} <strong>{log.type} {log.name}</strong> {time}
-    </li>
-  );
-}
-
-function DevTools() {
-  const logs = useLogs();
-  return (
-    <div>
-      <h2>Logs</h2>
-      <ul>
-        {logs.map((log, index) => (
-          <LogEntry log={log} key={index} />
-        ))}
-      </ul>
-    </div>
-  );
 }
 
 function Counter() {
