@@ -9,12 +9,14 @@ It brings:
 
 Table of content:
 
-* [Installation](#installation)
-* [Usage with react](#usage-with-react)
-* [Typescript helper](#typescript-helper)
-* [Running your crux app in a web worker](#running-your-crux-app-in-a-web-worker)
-* [Usage in a VanillaJS app](#usage-in-a-vanillajs-app)
-* [Testing](#testing)
+- [crux-wrapper](#crux-wrapper)
+   * [Installation](#installation)
+   * [Usage with react](#usage-with-react)
+   * [Typescript helper](#typescript-helper)
+   * [Running your crux app in a web worker](#running-your-crux-app-in-a-web-worker)
+   * [Usage in a VanillaJS app](#usage-in-a-vanillajs-app)
+   * [Testing](#testing)
+   * [Logs](#logs)
 
 ## Installation
 
@@ -52,14 +54,17 @@ export function App() {
     // The wasm init function that will expose your core's API
     init: () => init().then(() => core),
     // the handler that will be passed all the effects the core needs to perform
-    onEffect: async (effect, {
-      // send a response to the core. This function is tied to the effect send, you don't need to pass the effect id. This function could also be used for streaming responses back
-      respond,
-      // to send a new event to the core (not a response)
-      send,
-      // get the latest view model
-      view
-    }) => {
+    onEffect: async (
+      effect,
+      {
+        // send a response to the core. This function is tied to the effect send, you don't need to pass the effect id. This function could also be used for streaming responses back
+        respond,
+        // to send a new event to the core (not a response)
+        send,
+        // get the latest view model
+        view,
+      },
+    ) => {
       /*...*/
     },
     serializerConfig: {
@@ -336,4 +341,45 @@ describe("Counter", () => {
     expect(getByText("Count: 1")).not.toBeNull();
   });
 });
+```
+
+## Logs
+
+The crux-wrapper provides a way to log the events, effects and responses that are exchanged between your core and your shell. This can be useful for debugging and understanding the flow of your application.
+There are 2 ways to get logs from your crux app from react:
+
+- a reactive `useLogs` hook that will return the logs as an array of objects
+- a `useGetLog` hook that allows you to get the logs whenever you need it (without subscribing to changes and causing unecessary rerenderings)
+
+```tsx
+// This will only print logs when the button is clicked (no rerenderings)
+function LogPrinter() {
+  const getLogs = useGetLogs(); // exposes a function that do not subscribe to log changes
+
+  return (
+    <div>
+      <button onClick={() => console.log(getLogs())}>
+        Print logs to console
+    </div>
+  );
+}
+```
+
+```tsx
+// This will live print logs as they come in (rerenders on every log change)
+function LiveLogs() {
+  const logs = useLogs(); // will subscribe to log changes
+
+  return (
+    <div>
+      <ul key={index}>
+        {logs.map((log, index) => (
+          <li>
+            {log.at} {log.type} {log.name}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 ```

@@ -1,4 +1,4 @@
-import { createSender } from "./eventSender.js";
+import { createSender, type EventSenderLog } from "./eventSender.js";
 import type {
   CruxApi,
   CruxEntity,
@@ -19,6 +19,8 @@ type SerializerClass = {
 type DeserializerClass = {
   new (bytes: Uint8Array): BinDeserializer;
 };
+
+export type LogEntry = EventSenderLog;
 
 export type SerializerConfig<VM, R> = {
   BincodeSerializer: SerializerClass;
@@ -59,6 +61,12 @@ interface BaseConfig<VM> {
    * This function allows you to take the old view model and the new one and merge them together trying to keep unchanged object references as stable as possible
    */
   mergeViewModel?: (oldViewModel: VM, newViewModel: VM) => VM;
+  /**
+   * Will enable logging of all events, effect and responses.
+   * When a boolean is given, the wrapper will keep the logs in memory and you can access them via the `logs` property of the returned object.
+   * When a function is given, it will be called with the log entry every time a new log is created. The logs are not kept in memory in this case.
+   */
+  log?: boolean | ((log: EventSenderLog) => void);
 }
 
 interface ConfigWithSerializer<VM, R> extends BaseConfig<VM> {
@@ -122,15 +130,23 @@ export function wrap<VM, R extends Request>({
   onEffect,
   serializerConfig,
   serializer: baseSerializer,
+  log,
 }: CoreConfig<VM, R>) {
+  const logs: EventSenderLog[] = [];
   let apiRef: { value: Promise<CruxApi> | null } = { value: null };
   const serializer = baseSerializer ?? createSerializer(serializerConfig);
 
+  const logger = !log
+    ? undefined
+    : typeof log === "function"
+      ? log
+      : (log: EventSenderLog) => logs.push(log);
   const sender = createSender(
     apiRef,
 
     onEffect,
     serializer,
+    logger,
   );
   return {
     init: async () => {
@@ -141,5 +157,6 @@ export function wrap<VM, R extends Request>({
       await apiRef.value;
     },
     send: sender.send,
+    logs,
   };
 }

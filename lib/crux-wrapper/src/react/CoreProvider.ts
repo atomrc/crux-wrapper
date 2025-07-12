@@ -1,9 +1,13 @@
 import { is, wrap } from "../index.js";
-import type { CoreConfig, Constructor, CruxEntity } from "../index.js";
+import type {
+  CoreConfig,
+  Constructor,
+  CruxEntity,
+  LogEntry,
+} from "../index.js";
 import react, {
   useCallback,
   useContext,
-  useEffect,
   useLayoutEffect,
   useRef,
   useSyncExternalStore,
@@ -12,8 +16,10 @@ import { State, type Selector } from "./state.js";
 import type { CoreViewModel } from "crux-wrapper/react";
 import type { Request } from "../types.js";
 
+type CruxApi = ReturnType<typeof wrap>;
 type StoreApi = {
-  dispatch: (event: CruxEntity) => Promise<void>;
+  dispatch: CruxApi["send"];
+  logs: CruxApi["logs"];
   state?: State;
   /** whether the core has been loaded into memory and ready to be used */
   ready: boolean;
@@ -23,6 +29,7 @@ export const CoreContext = react.createContext<StoreApi>({
   dispatch: () => {
     throw new Error("CoreProvider not initialized");
   },
+  logs: [],
   ready: false,
 });
 
@@ -60,6 +67,29 @@ type StatefulProps = BaseProps & {
   ) => CoreViewModel;
 };
 
+type Func = () => void;
+class Logger {
+  private state: LogEntry[] = [];
+  private listeners: Func[] = [];
+
+  addListener(listener: Func) {
+    this.listeners.push(listener);
+    return () => {
+      this.listeners = this.listeners.filter((l) => l !== listener);
+    };
+  }
+
+  log(entry: LogEntry) {
+    this.state = [...this.state, entry];
+    this.listeners.forEach((listener) => listener());
+  }
+
+  getLogs() {
+    return this.state;
+  }
+}
+
+let logger: Logger = new Logger();
 type Props = StatelessProps | StatefulProps;
 /**
  * Provides a context that exposes the crux api.
@@ -74,6 +104,13 @@ export function CoreProvider({
   const isInit = useRef(false);
   const state = useRef(RenderEffect && new State(initialState, mergeViewModel));
   const [ready, setReady] = react.useState(false);
+
+  const useReactLogger = typeof coreConfig.log === "boolean" && coreConfig.log;
+  const onLog = useReactLogger
+    ? // When no logger is provided, but the consumer wants to log events, we register our custom logger
+      // this logger will be used by the useLog hook to subscribe to log changes
+      logger.log.bind(logger)
+    : coreConfig.log;
   const core = useRef(
     wrap({
       ...coreConfig,
@@ -84,6 +121,7 @@ export function CoreProvider({
         }
         return coreConfig.onEffect(effect, callbacks);
       },
+      log: onLog,
     }),
   );
 
@@ -101,6 +139,7 @@ export function CoreProvider({
     {
       value: {
         dispatch: core.current.send,
+        logs: core.current.logs,
         state: state.current,
         ready,
       },
@@ -117,7 +156,6 @@ export function useDispatch() {
  * Subscribe to changes to the crux viewModel.
  * This hooks only works if a RenderEffect class was given when mounting the `CruxProvider` component.
  * @param selector allows selecting a slice of the state and only subscribing to changes to that particular slice
- * @returns
  */
 export function useViewModel<T = CoreViewModel>(selector?: Selector<T>) {
   const state = useContext(CoreContext).state;
@@ -136,19 +174,41 @@ export function useViewModel<T = CoreViewModel>(selector?: Selector<T>) {
 /**
  * This hook will return a function that could give you the current loaded state.
  * It gives you direct access to the viewmodel state at instant T without subscribing to changes.
- * @returns
  */
 export function useViewModelGetter<T = CoreViewModel>(selector?: Selector<T>) {
   const state = useContext(CoreContext).state;
   if (!state) {
     throw new Error(
-      "useViewModel cannot be used when RenderEffect property was not set",
+      "useViewModelGetter cannot be used when RenderEffect property was not set",
     );
   }
 
   return useCallback(() => state.getViewModel(selector), [state]);
 }
 
+/**
+ * Will subscribe to logs from the core and return a reactive state containing the logs from the core.
+ */
+export function useLogs() {
+  return useSyncExternalStore(
+    (onLog) => logger.addListener(onLog),
+    () => logger.getLogs(),
+  );
+}
+
+/**
+ * This hook will return a function that could give you the current logs.
+ * It gives you direct access to the logs at instant T without subscribing to changes.
+ */
+export function useGetLogs() {
+  return useCallback(() => logger.getLogs(), []);
+}
+
+/**
+ * Subscribes to the changes of the `read` state of the core.
+ * This hook could be used to show a loading state while the core is being initialized.
+ * There is no particular need to wait for this property to be true before sending events to the core, as the core will handle them once it is ready.
+ */
 export function useIsReady() {
   return useContext(CoreContext).ready;
 }

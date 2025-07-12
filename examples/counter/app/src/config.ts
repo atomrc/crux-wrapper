@@ -31,5 +31,6 @@ export function getCoreConfig(worker: boolean): CoreConfig {
       ViewModel,
       Request,
     },
+    log: true,
   };
 }
