@@ -42,7 +42,7 @@ class Logger {
     return {
       ...this.baseLog(effect),
       type: "effect",
-      id: `${baseLog.name}-${id}-${baseLog.at}`,
+      id: `${baseLog.name}-${id.toString()}-${baseLog.at.toString()}`,
     };
   }
 
@@ -93,7 +93,10 @@ export function createSender<VM, R extends Request>(
           return serializer.deserializeView(await api.view());
         };
         const respondInternal = (response: CruxEntity) => {
-          logger?.logResponse(effectLog?.id!, response);
+          logger?.logResponse(
+            effectLog?.id ?? Math.random().toString(16),
+            response,
+          );
           return respond(id, response);
         };
         const response = await onEffect(effect, {
@@ -101,7 +104,9 @@ export function createSender<VM, R extends Request>(
           send,
           view,
         });
-        logger?.finishEffectLog(effectLog!);
+        if (effectLog) {
+          logger?.finishEffectLog(effectLog);
+        }
 
         if (response) {
           await respond(id, response);
@@ -110,11 +115,7 @@ export function createSender<VM, R extends Request>(
     );
   }
 
-  async function exhaust(
-    sendPayload: () =>
-      | Promise<Uint8Array<ArrayBufferLike>>
-      | Uint8Array<ArrayBufferLike>,
-  ) {
+  async function exhaust(sendPayload: () => Promise<Uint8Array> | Uint8Array) {
     const effects = await sendPayload();
     return handleEffect(effects);
   }

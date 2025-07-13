@@ -12,8 +12,10 @@
   },
   "scripts": {
     "build": "tsc --build tsconfig.build.json",
-    "prepare": "pnpm build",
+    "prepack": "pnpm build",
     "typecheck": "tsc --noEmit",
+    "lint": "eslint . --ext .ts,.tsx --fix && prettier --check .",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix && prettier --write .",
     "test": "vitest"
   },
   "keywords": [
@@ -23,8 +25,15 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@eslint/js": "^9.31.0",
     "@types/react": "19.1.8",
+    "@typescript-eslint/types": "^8.36.0",
+    "eslint": "^9.31.0",
+    "eslint-plugin-react": "^7.37.5",
+    "globals": "^16.3.0",
+    "prettier": "^3.6.2",
     "typescript": "5.8.3",
+    "typescript-eslint": "^8.36.0",
     "vitest": "^3.2.4"
   },
   "peerDependencies": {

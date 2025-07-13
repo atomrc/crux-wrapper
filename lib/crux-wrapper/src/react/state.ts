@@ -26,6 +26,8 @@ export class State extends EventTarget {
 
   subscribe(callback: () => void) {
     this.addEventListener("updated", callback);
-    return () => this.removeEventListener("updated", callback);
+    return () => {
+      this.removeEventListener("updated", callback);
+    };
   }
 }

@@ -30,7 +30,7 @@ export type SerializerConfig<VM, R> = {
 };
 
 export type Serializer<VM, R> = {
-  serialize(entity: any): Uint8Array;
+  serialize(entity: CruxEntity): Uint8Array;
   deserializeEffects(bytes: Uint8Array): R[];
   deserializeView(bytes: Uint8Array): VM;
 };
@@ -133,7 +133,7 @@ export function wrap<VM, R extends Request>({
   log,
 }: CoreConfig<VM, R>) {
   const logs: EventSenderLog[] = [];
-  let apiRef: { value: Promise<CruxApi> | null } = { value: null };
+  const apiRef: { value: Promise<CruxApi> | null } = { value: null };
   const serializer = baseSerializer ?? createSerializer(serializerConfig);
 
   const logger = !log
@@ -153,10 +153,10 @@ export function wrap<VM, R extends Request>({
       if (apiRef.value) {
         return;
       }
-      apiRef.value = init(sender.handleEffect);
+      apiRef.value = init((...args) => void sender.handleEffect(...args));
       await apiRef.value;
     },
-    send: sender.send,
+    send: sender.send.bind(sender),
     logs,
   };
 }

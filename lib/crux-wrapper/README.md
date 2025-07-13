@@ -10,13 +10,13 @@ It brings:
 Table of content:
 
 - [crux-wrapper](#crux-wrapper)
-   * [Installation](#installation)
-   * [Usage with react](#usage-with-react)
-   * [Typescript helper](#typescript-helper)
-   * [Running your crux app in a web worker](#running-your-crux-app-in-a-web-worker)
-   * [Usage in a VanillaJS app](#usage-in-a-vanillajs-app)
-   * [Testing](#testing)
-   * [Logs](#logs)
+  - [Installation](#installation)
+  - [Usage with react](#usage-with-react)
+  - [Typescript helper](#typescript-helper)
+  - [Running your crux app in a web worker](#running-your-crux-app-in-a-web-worker)
+  - [Usage in a VanillaJS app](#usage-in-a-vanillajs-app)
+  - [Testing](#testing)
+  - [Logs](#logs)
 
 ## Installation
 

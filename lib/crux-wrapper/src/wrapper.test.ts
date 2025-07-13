@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, vitest } from "vitest";
 
-import type { CruxApi, OnEffect } from "./types.js";
+import type { CruxApi, OnEffect, Request } from "./types.js";
 import { wrap, type Serializer } from "./wrapper.js";
 
 function serialize(entity: object) {
@@ -9,12 +9,13 @@ function serialize(entity: object) {
   return new Uint8Array(buffer);
 }
 
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 function deserialize(data: Uint8Array) {
   const str = new TextDecoder().decode(data);
   return JSON.parse(str);
 }
 
-const serializer: Serializer<object, any> = {
+const serializer: Serializer<object, Request> = {
   serialize,
   deserializeEffects: deserialize,
   deserializeView: deserialize,
@@ -28,18 +29,18 @@ class Response extends CruxEntity {}
 class Effect extends CruxEntity {}
 
 const api: CruxApi = {
-  async view() {
+  view() {
     return serialize({});
   },
-  process_event: async () => {
+  process_event: () => {
     return serialize([]);
   },
-  handle_response: async () => {
+  handle_response: () => {
     return serialize([]);
   },
 };
 
-const init = async () => api;
+const init = () => Promise.resolve(api);
 
 describe("crux wrapper", () => {
   it("should throw if core has not been initialized", () => {
@@ -50,10 +51,10 @@ describe("crux wrapper", () => {
   });
 
   it("forwards effects triggered by an event", async () => {
-    const onEffect = vitest.fn(async () => undefined);
+    const onEffect = vitest.fn().mockResolvedValue(undefined);
     const nbEffects = Math.floor(1 + Math.random() * 100);
     const effects = Array.from({ length: nbEffects }).map((_, i) => {
-      return { id: i, effect: {} };
+      return { id: i, effect: new Effect() };
     });
     vitest.spyOn(api, "process_event").mockResolvedValue(serialize(effects));
     const crux = wrap({ init, onEffect, serializer, log: true });
@@ -72,7 +73,7 @@ describe("crux wrapper", () => {
       { id: 0, effect: {} },
       { id: 1, effect: {} },
     ];
-    const onEffect = vitest.fn(async () => new Response());
+    const onEffect = vitest.fn().mockResolvedValue(new Response());
     vitest.spyOn(api, "process_event").mockResolvedValue(serialize(effects));
     vitest.spyOn(api, "handle_response");
     const crux = wrap({ init, onEffect, serializer, log: true });
@@ -98,10 +99,12 @@ describe("crux wrapper", () => {
   it("allows streamins responses back", async () => {
     const streamEffect = { id: 0, effect: {} };
     vi.useFakeTimers();
-    const onEffect: OnEffect<any> = vitest.fn(async (effect, { respond }) => {
-      setInterval(() => respond({}), 100);
-      return undefined;
-    });
+    const onEffect = vitest.fn(((_effect, { respond }) => {
+      setInterval(() => {
+        void respond(new Response());
+      }, 100);
+      return Promise.resolve(undefined);
+    }) as OnEffect<unknown>);
     vitest
       .spyOn(api, "process_event")
       .mockResolvedValue(serialize([streamEffect]));
@@ -126,7 +129,7 @@ describe("crux wrapper", () => {
     expect(crux.logs[2]).toEqual(
       expect.objectContaining({
         type: "response",
-        name: "Object",
+        name: "Response",
       }),
     );
 
@@ -137,7 +140,7 @@ describe("crux wrapper", () => {
     expect(crux.logs[3]).toEqual(
       expect.objectContaining({
         type: "response",
-        name: "Object",
+        name: "Response",
       }),
     );
   });
