@@ -26,7 +26,11 @@ class CruxEntity {
 }
 class Event extends CruxEntity {}
 class Response extends CruxEntity {}
-class Effect extends CruxEntity {}
+class Effect extends CruxEntity {
+  constructor(public value: CruxEntity = new CruxEntity()) {
+    super();
+  }
+}
 
 const api: CruxApi = {
   view() {
@@ -70,8 +74,8 @@ describe("crux wrapper", () => {
 
   it("sends responses back to the crux api", async () => {
     const effects = [
-      { id: 0, effect: {} },
-      { id: 1, effect: {} },
+      { id: 0, effect: new Effect() },
+      { id: 1, effect: new Effect() },
     ];
     const onEffect = vitest.fn().mockResolvedValue(new Response());
     vitest.spyOn(api, "process_event").mockResolvedValue(serialize(effects));
@@ -97,7 +101,7 @@ describe("crux wrapper", () => {
   });
 
   it("allows streamins responses back", async () => {
-    const streamEffect = { id: 0, effect: {} };
+    const streamEffect = { id: 0, effect: new Effect() };
     vi.useFakeTimers();
     const onEffect = vitest.fn(((_effect, { respond }) => {
       setInterval(() => {

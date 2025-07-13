@@ -4,10 +4,14 @@ export type EventCycleCallbacks = {
   onEffect: (effect: unknown) => undefined | EffectResponse;
 };
 
-export type CruxEntity = {
+export interface CruxEntity {
   /* eslint-disable @typescript-eslint/no-explicit-any */
   serialize: (serializer: any) => void;
-};
+}
+
+export interface Effect extends CruxEntity {
+  value: CruxEntity;
+}
 
 export type OnEffect<VM> = (
   effect: CruxEntity,
@@ -40,7 +44,7 @@ export type CruxApi = {
 };
 
 export type Request = {
-  effect: CruxEntity;
+  effect: Effect;
   id: number;
 };
 

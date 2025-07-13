@@ -2,47 +2,46 @@ import type {
   CruxApi,
   CruxEntity,
   CruxSerializer,
+  Effect,
   OnEffect,
   Request,
 } from "./types.js";
 
-type EffectLog = {
+type BaseLog = {
+  id: string;
+  name: string;
+  at: number;
+};
+type EffectLog = BaseLog & {
   type: "effect";
   name: string;
   id: string;
   at: number;
   time: number;
 };
-export type EventSenderLog =
-  | {
-      type: "event";
-      name: string;
-      at: number;
-    }
-  | EffectLog
-  | {
-      type: "response";
-      name: string;
-      to: string;
-      at: number;
-    };
+
+type EventLog = BaseLog & { type: "event" };
+type ResponseLog = BaseLog & { type: "response"; to: string };
+export type EventSenderLog = EventLog | EffectLog | ResponseLog;
 
 class Logger {
   constructor(private log: (entry: EventSenderLog) => void) {}
 
-  private baseLog(entity: CruxEntity) {
+  private baseLog(entity: CruxEntity): BaseLog {
+    const at = performance.now();
+    const name = entity.constructor.name;
     return {
-      name: entity.constructor.name,
-      at: performance.now(),
+      id: `${at.toString()}-${name}-${Math.floor(Math.random() * 1e6).toString(16)}`,
+      name,
+      at,
     };
   }
 
-  createEffectLog(id: number, effect: CruxEntity): Omit<EffectLog, "time"> {
-    const baseLog = this.baseLog(effect);
+  createEffectLog(id: number, effect: Effect): Omit<EffectLog, "time"> {
+    const baseLog = this.baseLog(effect.value);
     return {
-      ...this.baseLog(effect),
+      ...baseLog,
       type: "effect",
-      id: `${baseLog.name}-${id.toString()}-${baseLog.at.toString()}`,
     };
   }
 
