@@ -49,6 +49,7 @@ function Counter() {
   );
 }
 export function App() {
+  const [devtools, setDevtools] = useState(false);
   const initialState = new ViewModel(BigInt(0));
   const coreConfig = getCoreConfig(false);
   return (
@@ -58,7 +59,15 @@ export function App() {
       RenderEffect={EffectVariantRender}
     >
       <Counter />
-      <DevTools />
+      <label>
+        Open devtools
+        <input
+          checked={devtools}
+          type="checkbox"
+          onChange={() => setDevtools(!devtools)}
+        />
+      </label>
+      {devtools && <DevTools />}
     </CoreProvider>
   );
 }
