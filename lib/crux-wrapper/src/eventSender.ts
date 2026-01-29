@@ -69,7 +69,7 @@ class Logger {
 }
 
 export function createSender<VM, R extends Request>(
-  apiRef: { value: null | Promise<CruxApi> },
+  apiRef: { value: null | Promise<CruxApi> | CruxApi },
   onEffect: OnEffect<VM>,
   serializer: CruxSerializer<VM, R>,
   log?: (payload: EventSenderLog) => void,
@@ -114,21 +114,20 @@ export function createSender<VM, R extends Request>(
     );
   }
 
-  async function exhaust(sendPayload: () => Promise<Uint8Array> | Uint8Array) {
-    const effects = await sendPayload();
+  async function send(event: CruxEntity) {
+    logger?.logEvent(event);
+    const api = await getApi();
+    const effects = await api.process_event(serializer.serialize(event));
     return handleEffect(effects);
   }
 
-  function send(event: CruxEntity) {
-    logger?.logEvent(event);
-    return exhaust(async () =>
-      (await getApi()).process_event(serializer.serialize(event)),
+  async function respond(id: number, response: CruxEntity) {
+    const api = await getApi();
+    const effects = await api.handle_response(
+      id,
+      serializer.serialize(response),
     );
-  }
-  function respond(id: number, response: CruxEntity) {
-    return exhaust(async () =>
-      (await getApi()).handle_response(id, serializer.serialize(response)),
-    );
+    return handleEffect(effects);
   }
 
   return {

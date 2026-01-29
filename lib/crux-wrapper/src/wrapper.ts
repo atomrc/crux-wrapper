@@ -47,7 +47,7 @@ interface BaseConfig<VM> {
    * })
    * ```
    */
-  init: (onEffect: (effects: Uint8Array) => void) => Promise<CruxApi>;
+  init: (onEffect: (effects: Uint8Array) => void) => Promise<CruxApi> | CruxApi;
   /**
    * The function that will be called for every single effect that the core requests
    */
@@ -133,7 +133,7 @@ export function wrap<VM, R extends Request>({
   log,
 }: CoreConfig<VM, R>) {
   const logs: EventSenderLog[] = [];
-  const apiRef: { value: Promise<CruxApi> | null } = { value: null };
+  const apiRef: { value: Promise<CruxApi> | CruxApi | null } = { value: null };
   const serializer = baseSerializer ?? createSerializer(serializerConfig);
 
   const logger = !log
@@ -153,8 +153,11 @@ export function wrap<VM, R extends Request>({
       if (apiRef.value) {
         return;
       }
+      // we immediately set the apiRef to the promise that will resolve to the api in case we need to send events before the init is finished
       apiRef.value = init((...args) => void sender.handleEffect(...args));
-      await apiRef.value;
+      const resolved = await apiRef.value;
+      // Once resolved, we do not need to keep the promise around a we just stored the resolved value. This way future calls to the sender will be sync
+      apiRef.value = resolved;
     },
     send: sender.send.bind(sender),
     logs,
