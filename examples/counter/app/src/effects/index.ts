@@ -1,4 +1,4 @@
-import { EffectVariantStream } from "core_types/types/core_types";
+import { EffectVariantStream } from "core_types/core";
 import { CoreConfig, is } from "crux-wrapper";
 import { handleStreamOperation } from "./stream";
 

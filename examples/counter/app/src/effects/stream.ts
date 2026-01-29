@@ -4,7 +4,7 @@ import {
   StreamOperationVariantStart,
   StreamOperationVariantStop,
   StreamReponseVariantData,
-} from "core_types/types/core_types";
+} from "core_types/core";
 import { is } from "crux-wrapper";
 
 let streamInterval: NodeJS.Timeout | undefined;

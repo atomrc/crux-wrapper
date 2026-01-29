@@ -9,6 +9,6 @@ export default defineConfig({
     setupFiles: ["./vitest.setup.ts"],
   },
   optimizeDeps: {
-    include: ["core_types/bincode/mod", "core_types/types/core_types"],
+    include: ["core_types/bincode/mod", "core_types/core"],
   },
 });

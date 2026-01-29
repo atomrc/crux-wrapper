@@ -1,5 +1,5 @@
-import { BincodeSerializer, BincodeDeserializer } from "core_types/bincode/mod";
-import { ViewModel, Request } from "core_types/types/core_types";
+import { BincodeSerializer, BincodeDeserializer } from "core_types/bincode";
+import { ViewModel, Request } from "core_types/core";
 import { CoreWorkerApi } from "./worker";
 import { wrap } from "comlink";
 import { CoreConfig } from "crux-wrapper";

@@ -2,8 +2,10 @@ pub mod app;
 
 use std::sync::LazyLock;
 
-pub use crux_core::bridge::{Bridge, Request};
-pub use crux_core::{Core, ResolveError};
+pub use crux_core::{
+    bridge::{Bridge, Request},
+    Core, ResolveError,
+};
 
 pub use app::*;
 

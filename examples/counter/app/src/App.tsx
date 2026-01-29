@@ -11,7 +11,7 @@ import {
   ViewModel,
   EventVariantStartWatch,
   EventVariantStopWatch,
-} from "core_types/types/core_types";
+} from "core_types/core";
 import { getCoreConfig } from "./config";
 import { useEffect, useRef, useState } from "react";
 import { DevTools } from "./DevTools";
