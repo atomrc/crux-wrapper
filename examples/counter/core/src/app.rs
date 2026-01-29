@@ -4,27 +4,29 @@ use crux_core::{
     render::{render, RenderOperation},
     Command,
 };
+use facet::Facet;
 use futures_util::StreamExt;
 use serde::{Deserialize, Serialize};
 
 // ANCHOR: model
-#[derive(Default, Serialize)]
+#[derive(Default)]
 pub struct Model {
     count: Count,
 }
 
-#[derive(Serialize, Deserialize, Clone, Default, Debug, PartialEq, Eq)]
+#[derive(Clone, Default, Debug, PartialEq, Eq)]
 pub struct Count {
     value: isize,
 }
 // ANCHOR_END: model
 
-#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+#[derive(Facet, Serialize, Deserialize, Debug, Clone, Default)]
 pub struct ViewModel {
     pub count: isize,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Facet, Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+#[repr(C)]
 pub enum Event {
     StartWatch,
     StopWatch,
@@ -35,13 +37,15 @@ pub enum Event {
     Incremement10,
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
+#[derive(Facet, Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
+#[repr(C)]
 pub enum StreamOperation {
     Start,
     Stop,
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
+#[derive(Facet, Serialize, Deserialize, Debug, PartialEq, Eq)]
+#[repr(C)]
 pub enum StreamReponse {
     Data(String),
     End,
@@ -51,7 +55,7 @@ impl Operation for StreamOperation {
     type Output = StreamReponse;
 }
 
-#[effect]
+#[effect(facet_typegen)]
 pub enum Effect {
     Render(RenderOperation),
     Stream(StreamOperation),

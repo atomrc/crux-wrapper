@@ -20,8 +20,8 @@ importers:
         specifier: link:../core/pkg
         version: link:../core/pkg
       core_types:
-        specifier: link:../core/types/typescript
-        version: link:../core/types/typescript
+        specifier: link:../core/types
+        version: link:../core/types
       crux-wrapper:
         specifier: workspace:*
         version: link:../../../lib/crux-wrapper

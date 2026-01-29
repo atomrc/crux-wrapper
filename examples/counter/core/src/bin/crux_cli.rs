@@ -1,8 +1,17 @@
-use std::env;
+use crux_core::type_generation::facet::{Config, TypeRegistry};
+use uniffi::deps::anyhow::Result;
 
-use uniffi::deps::anyhow;
+use core::App;
 
-fn main() -> anyhow::Result<()> {
-    env::set_var("CRATE_NAME", env!("CARGO_PKG_NAME"));
-    crux_core::run_cli()
+fn main() -> Result<()> {
+    let typegen_app = TypeRegistry::new().register_app::<App>().build();
+
+    let config = Config::builder("core", "./types")
+        .add_extensions()
+        .add_runtimes()
+        .build();
+
+    typegen_app.typescript(&config)?;
+
+    Ok(())
 }
