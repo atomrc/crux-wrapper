@@ -16,7 +16,7 @@ cli = ["crux_core/cli", "facet_typegen"]
 facet_typegen = ["crux_core/facet_typegen"]
 
 [dependencies]
-crux_core = "0.16"
+crux_core = "0.17.0-rc2"
 serde = { version = "1.0.218", features = ["derive"] }
 lazy_static = "1.5.0"
 uniffi = "0.29.0"
