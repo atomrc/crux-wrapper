@@ -1,8 +1,8 @@
 use crux_core::{
+    Command,
     capability::Operation,
     macros::effect,
-    render::{render, RenderOperation},
-    Command,
+    render::{RenderOperation, render},
 };
 use facet::Facet;
 use futures_util::StreamExt;
@@ -56,6 +56,7 @@ impl Operation for StreamOperation {
 }
 
 #[effect(facet_typegen)]
+#[derive(Debug)]
 pub enum Effect {
     Render(RenderOperation),
     Stream(StreamOperation),
@@ -68,10 +69,9 @@ impl crux_core::App for App {
     type Model = Model;
     type Event = Event;
     type ViewModel = ViewModel;
-    type Capabilities = ();
     type Effect = Effect;
 
-    fn update(&self, msg: Event, model: &mut Model, _caps: &()) -> Command<Effect, Event> {
+    fn update(&self, msg: Event, model: &mut Model) -> Command<Effect, Event> {
         match msg {
             Event::StartWatch => Command::new(|ctx| async move {
                 let mut stream = ctx.stream_from_shell(StreamOperation::Start);
