@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, vitest } from "vitest";
+import { beforeEach, describe, expect, it, vi, vitest } from "vitest";
 
 import type { CruxApi, OnEffect, Request } from "./types.js";
 import { wrap, type Serializer } from "./wrapper.js";
@@ -47,9 +47,12 @@ const api: CruxApi = {
 const init = () => Promise.resolve(api);
 
 describe("crux wrapper", () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+  });
   it("should throw if core has not been initialized", () => {
     const crux = wrap({ init, onEffect: vitest.fn(), serializer });
-    expect(() => crux.send(new Event())).toThrowError(
+    expect(() => crux.send(new Event())).toThrow(
       "Core not initialized. Call init() first.",
     );
   });
@@ -100,7 +103,7 @@ describe("crux wrapper", () => {
     );
   });
 
-  it("allows streamins responses back", async () => {
+  it("allows streaming responses back", async () => {
     const streamEffect = { id: 0, effect: new Effect() };
     vi.useFakeTimers();
     const onEffect = vitest.fn(((_effect, { respond }) => {
