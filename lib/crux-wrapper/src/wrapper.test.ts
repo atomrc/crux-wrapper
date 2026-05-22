@@ -111,7 +111,7 @@ describe("crux wrapper", () => {
         void respond(new Response());
       }, 100);
       return Promise.resolve(undefined);
-    }) as OnEffect<unknown>);
+    }));
     vitest
       .spyOn(api, "process_event")
       .mockResolvedValue(serialize([streamEffect]));
