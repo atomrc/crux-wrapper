@@ -103,6 +103,16 @@ describe("crux wrapper", () => {
     );
   });
 
+  it("supports empty effect array as reponse from core", async () => {
+    const onEffect = vitest.fn().mockResolvedValue(new Response());
+    vitest.spyOn(api, "process_event").mockResolvedValue(undefined);
+    vitest.spyOn(api, "handle_response");
+    const crux = wrap({ init, onEffect, serializer, log: true });
+
+    await crux.init();
+    await crux.send(new Event());
+  });
+
   it("allows streaming responses back", async () => {
     const streamEffect = { id: 0, effect: new Effect() };
     vi.useFakeTimers();

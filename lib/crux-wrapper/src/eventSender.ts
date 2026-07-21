@@ -82,7 +82,10 @@ export function createSender<VM, R extends Request>(
     return apiRef.value;
   }
 
-  async function handleEffect(rawEffects: Uint8Array) {
+  async function handleEffect(rawEffects: Uint8Array | undefined) {
+    if (!rawEffects) {
+      return;
+    }
     const effects = serializer.deserializeEffects(rawEffects);
     await Promise.all(
       effects.map(async ({ id, effect }) => {
