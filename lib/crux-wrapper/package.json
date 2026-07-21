@@ -1,6 +1,6 @@
 {
   "name": "crux-wrapper",
-  "version": "3.3.0",
+  "version": "3.4.0",
   "description": "A React provider for your crux application",
   "type": "module",
   "files": [
