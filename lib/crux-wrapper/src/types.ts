@@ -35,11 +35,13 @@ export type OnEffect<VM> = (
 export type OnError = (error: unknown) => void;
 
 export type CruxApi = {
-  process_event: (payload: Uint8Array) => Promise<Uint8Array> | Uint8Array;
+  process_event: (
+    payload: Uint8Array,
+  ) => Promise<Uint8Array> | Uint8Array | undefined;
   handle_response: (
     id: number,
     payload: Uint8Array,
-  ) => Promise<Uint8Array> | Uint8Array;
+  ) => Promise<Uint8Array> | Uint8Array | undefined;
   view: () => Promise<Uint8Array> | Uint8Array;
 };
 
