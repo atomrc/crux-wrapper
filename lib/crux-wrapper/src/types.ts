@@ -9,10 +9,7 @@ export interface CruxEntity {
   serialize: (serializer: any) => void;
 }
 
-export interface Effect extends CruxEntity {
-  value: CruxEntity;
-}
-
+export type Effect = CruxEntity;
 export type OnEffect<VM> = (
   effect: CruxEntity,
   {
@@ -46,12 +43,12 @@ export type CruxApi = {
 };
 
 export type Request = {
-  effect: Effect;
+  effect: CruxEntity;
   id: number;
 };
 
 export type SerializableClass<T> = {
-  new (...args: unknown[]): T;
+  new (...args: any[]): T;
   deserialize(serializer: unknown): T;
 };
 
