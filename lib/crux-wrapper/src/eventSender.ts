@@ -37,8 +37,15 @@ class Logger {
     };
   }
 
-  createEffectLog(id: number, effect: Effect): Omit<EffectLog, "time"> {
-    const baseLog = this.baseLog(effect.value);
+  createEffectLog(
+    id: number,
+    effect: Effect,
+  ): Omit<EffectLog, "time"> | undefined {
+    const value = "value" in effect && effect.value;
+    if (!value) {
+      return;
+    }
+    const baseLog = this.baseLog(value as CruxEntity);
     return {
       ...baseLog,
       type: "effect",
